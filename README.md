@@ -11,3 +11,5 @@ Dependencies:
  - matplotlib http://matplotlib.org/
  - numpy http://www.numpy.org/
  - pandas http://pandas.pydata.org/
+
+Developers of any of the three projects listed above should already have these dependencies installed.
