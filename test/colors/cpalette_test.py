@@ -61,13 +61,22 @@ def test_simplemap():
     assert cp._cdict == TEST_DICT
 
 def test_presets():
-    palettes = list(cpalette.ColorPalette.getPresets())
+    palettes = cpalette.ColorPalette.getPresets()
     palettes.sort()
-    assert palettes == ['mmi','pop']
-    cp = cpalette.ColorPalette.fromPreset('mmi')
-    assert cp.vmin == 0
-    assert cp.vmax == 10
+    assert palettes == ['mmi','pop','shaketopo']
 
+    mmi = cpalette.ColorPalette.fromPreset('mmi')
+    assert mmi.vmin == 0
+    assert mmi.vmax == 10
+
+    pop = cpalette.ColorPalette.fromPreset('pop')
+    assert pop.vmin == 0
+    assert pop.vmax == 50000
+    
+    topo = cpalette.ColorPalette.fromPreset('shaketopo')
+    assert topo.vmin == -100
+    assert topo.vmax == 9200
+    
 def test_file():
     try:
         tdir = tempfile.mkdtemp()

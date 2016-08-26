@@ -46,8 +46,35 @@ POP = {'z0':[0,5,50,100,500,1000,5000,10000],
                (0,0,0)],
        'nan_color':(0,0,0,0)}
 
+TOPO = {'z0':[-100,0,50,350,1000,1800,2300,2600,4000,9000,9100],
+        'z1':[0,50,350,1000,1800,2300,2600,4000,9000,9200],
+        'rgb0':[(195,255,193),
+                (110,135,80),
+                (120,160,90),
+                (230,220,110),
+                (210,170,80),
+                (195,140,100),
+                (100,80,70),
+                (60,60,60),
+                (255,255,255),
+                (255,255,255),
+                (255,128,0)],
+        'rgb1':[(110,135,80),
+                (120,160,90),
+                (230,220,110),
+                (210,170,80),
+                (195,140,100),
+                (100,80,70),
+                (60,60,60),
+                (255,255,255),
+                (255,255,255),
+                (255,128,0),
+                (255,0,0)],
+        'nan_color':(128,128,128,0)}
+
 PALETTES = {'mmi':MMI,
-            'pop':POP}
+            'pop':POP,
+            'shaketopo':TOPO}
 
 class ColorPalette(object):
     def __init__(self,name,z0,z1,rgb0,rgb1,nan_color=None):
@@ -64,7 +91,7 @@ class ColorPalette(object):
         :param rgb1:
           Sequence of RGB triplets (values between 0-255).
         :param nan_color:
-          Either None or RGBA quadruplet (A is for Alpha, where 
+          Either None or RGBA quadruplet (A is for Alpha, where 0 is transparent, and 255 is opaque.)
         """
         #validate that lengths are all identical
         if len(z0) != len(z1) != len(rgb0) != len(rgb1):
@@ -74,7 +101,7 @@ class ColorPalette(object):
         z1 = np.array(z1)
         self._vmin = z0.min()
         self._vmax = z1.max()
-        self.nan_color = nan_color
+        self.nan_color = np.array(nan_color)/255.0
 
         #change the z values to be between 0 and 1
         adj_z0 = (z0 - self._vmin) / (self._vmax-self._vmin) #should this be z0 - vmin?
@@ -135,7 +162,7 @@ class ColorPalette(object):
         :returns:
           List of strings which can be used with fromPreset() to create a ColorPalette.
         """
-        return PALETTES.keys()
+        return list(PALETTES.keys())
 
     @classmethod
     def fromFile(cls,filename):
