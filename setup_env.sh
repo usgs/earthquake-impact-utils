@@ -3,7 +3,8 @@
 VENV=impactutils
 PYVER=3.5
 
-DEPS="numpy matplotlib cartopy pytest pytest-cov pytest-mpl flake8 pep8-naming"
+DEPS="numpy matplotlib cartopy pytest pytest-cov pytest-mpl"
+#DEPS="numpy matplotlib cartopy"
 
 if [ "$#" -le 1 ]; then
     #turn off whatever other virtual environment user might be in
