@@ -30,7 +30,6 @@ def test_draw_scale():
     ax.coastlines()
     ax.set_extent([-90, -75, 25, 35])
     draw_scale(ax,pos='ll',units='m')
-    plt.savefig('output.pdf')
 
 if __name__ == '__main__':
     test_draw_scale()
