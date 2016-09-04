@@ -15,10 +15,7 @@ install:
     - conda info -a
     - bash setup_env.sh
     - source activate impactutils
-    #---------------------
-    # Install impactutils
-    #---------------------
-    #- pip install .
+    - pip install -e .
 #    - python setup.py install
 before_script:
     # This is to take care of Invalid DISPLAY variable
