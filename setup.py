@@ -1,7 +1,7 @@
 from distutils.core import setup
 import os.path
 
-setup(name='earthquake-impact-utils',
+setup(name='impactutils',
       version='0.1dev',
       description='USGS Earthquake Impact Utilities',
       author='Mike Hearne',
