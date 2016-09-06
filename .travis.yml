@@ -15,11 +15,9 @@ install:
     - conda info -a
     - bash setup_env.sh
     - source activate impactutils
-    #---------------------
-    # Install impactutils
-    #---------------------
-    #- pip install .
-    - python setup.py install
+    - pip install git+https://github.com/usgs/earthquake-impact-utils
+#    - pip install /home/travis/build/usgs/earthquake-impact-utils/
+#    - python setup.py install
 before_script:
     # This is to take care of Invalid DISPLAY variable
     - "export DISPLAY=:99.0"
