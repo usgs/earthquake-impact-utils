@@ -3,7 +3,7 @@
 VENV=impactutils
 PYVER=3.5
 
-DEPS="numpy scipy matplotlib jupyter rasterio fiona xlrd xlwt pandas basemap basemap-data-hires shapely h5py gdal==1.11.4 descartes sphinx configobj pyproj pytest pytables pytest pytest-cov pytest-mpl flake8 pep8-naming"
+DEPS="numpy cartopy matplotlib pytest pytest-cov pytest-mpl flake8 pep8-naming"
 #DEPS="numpy matplotlib cartopy"
 
 if [ "$#" -le 1 ]; then
