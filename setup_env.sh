@@ -3,14 +3,14 @@
 VENV=impactutils
 PYVER=3.5
 
-DEPS="numpy matplotlib cartopy pytest pytest-cov pytest-mpl"
+DEPS="numpy scipy matplotlib jupyter rasterio fiona xlrd xlwt pandas basemap basemap-data-hires shapely h5py gdal==1.11.4 descartes sphinx configobj pyproj pytest pytables pytest pytest-cov pytest-mpl flake8 pep8-naming"
 #DEPS="numpy matplotlib cartopy"
 
 if [ "$#" -le 1 ]; then
     #turn off whatever other virtual environment user might be in
     source deactivate
     
-    #remove any previous virtual environments called pager
+    #remove any previous virtual environments called VENV
     conda remove --name $VENV --all -y
     
     #create a new virtual environment called $VENV with the below list of dependencies installed into it
