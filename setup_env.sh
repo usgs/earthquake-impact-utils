@@ -1,29 +1,24 @@
 #!/bin/bash
 
-VENV=impactutils
+VENV=impact
 PYVER=3.5
 
-DEPS="numpy matplotlib cartopy pytest pytest-cov pytest-mpl"
-#DEPS="numpy matplotlib cartopy"
+DEPARRAY=(numpy matplotlib cartopy pandas pytest pytest-cov pytest-mpl)
 
-if [ "$#" -le 1 ]; then
-    #turn off whatever other virtual environment user might be in
-    source deactivate
+
+#turn off whatever other virtual environment user might be in
+source deactivate
     
-    #remove any previous virtual environments called pager
-    conda remove --name $VENV --all -y
+#remove any previous virtual environments called pager
+conda remove --name $VENV --all -y
     
-    #create a new virtual environment called $VENV with the below list of dependencies installed into it
-    conda create --name $VENV --yes --channel conda-forge python=3.5 $DEPS -y
-else
-    conda install --yes --channel conda-forge python=3.5 $DEPS -y
-fi
+#create a new virtual environment called $VENV with the below list of dependencies installed into it
+conda create --name $VENV --yes --channel conda-forge python=3.5 ${DEPARRAY[*]} -y
 
 #activate the new environment
 source activate $VENV
 
 #install some items separately
-#conda install -y sqlalchemy #at the time of this writing, this is v1.0, and I want v1.1
 conda install -y psutil
 
 #do pip installs of those things that are not available via conda.
