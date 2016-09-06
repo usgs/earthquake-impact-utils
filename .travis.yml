@@ -19,7 +19,7 @@ install:
     # Install impactutils
     #---------------------
     #- pip install .
-    - python setup.py install
+    - pip install -e
 before_script:
     # This is to take care of Invalid DISPLAY variable
     - "export DISPLAY=:99.0"
