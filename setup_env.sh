@@ -3,7 +3,7 @@
 VENV=impactutils
 PYVER=3.5
 
-DEPS="numpy matplotlib cartopy pytest pytest-cov pytest-mpl"
+DEPS="numpy matplotlib cartopy pytest pytest-cov pytest-mpl pandas"
 #DEPS="numpy matplotlib cartopy"
 
 if [ "$#" -le 1 ]; then
