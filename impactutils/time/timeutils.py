@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime,timedelta
 
 def get_local_time(utctime,lat,lon):
     """Return local datetime object given UTC time and a lat/lon.
@@ -15,5 +15,5 @@ def get_local_time(utctime,lat,lon):
       Local datetime object.
     """
     doffset = round(lon/15)
-    ltime = otime + datetime.timedelta(seconds=doffset*3600)
+    ltime = utctime + timedelta(seconds=doffset*3600)
     return ltime
