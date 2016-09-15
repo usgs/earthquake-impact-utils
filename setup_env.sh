@@ -3,7 +3,7 @@
 VENV=impact
 PYVER=3.5
 
-DEPARRAY=(numpy matplotlib cartopy pandas fiona shapely pytest pytest-cov pytest-mpl)
+DEPARRAY=(numpy matplotlib cartopy basemap pandas fiona shapely pytest pytest-cov pytest-mpl)
 
 
 #turn off whatever other virtual environment user might be in
@@ -24,6 +24,7 @@ conda install -y psutil
 #do pip installs of those things that are not available via conda.
 pip install flake8
 pip install pep8-naming
+pip -v install git+git://github.com/gem/oq-hazardlib.git
 
 #tell the user they have to activate this environment
 echo "Type 'source activate ${VENV}' to use this new virtual environment."
