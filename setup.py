@@ -8,7 +8,7 @@ setup(name='earthquake-impact-utils',
       author_email='mhearne@usgs.gov',
       url='https://github.com/usgs/earthquake-impact-utils',
       package_data = {'impactutils':[os.path.join('data', 'timezones.json'),
-                                     os.path.join('data', 'cities1000.txt']},
+                                     os.path.join('data', 'cities1000.txt')]},
       packages=['impactutils','impactutils.textformat',
                 'impactutils.io','impactutils.colors',
                 'impactutils.mapping','impactutils.time'],)
