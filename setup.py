@@ -11,4 +11,5 @@ setup(name='earthquake-impact-utils',
                                      os.path.join('data', 'cities1000.txt')]},
       packages=['impactutils','impactutils.textformat',
                 'impactutils.io','impactutils.colors',
+                'impactutils.testing',
                 'impactutils.mapping','impactutils.time'],)
