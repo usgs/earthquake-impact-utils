@@ -6,4 +6,4 @@ build
 .cache
 .coverage
 .coverage.xml
-shakemap.egg-info/
+earthquake_impact_utils.egg-info/
