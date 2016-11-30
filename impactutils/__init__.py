@@ -1,2 +1,2 @@
 __all__ = ["colors", "data", "io", "mapping",
-           "testing", "textformat", "time"]
+           "testing", "textformat", "time","comcat"]
