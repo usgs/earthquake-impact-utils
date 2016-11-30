@@ -12,4 +12,6 @@ setup(name='earthquake-impact-utils',
       packages=['impactutils','impactutils.textformat',
                 'impactutils.io','impactutils.colors',
                 'impactutils.testing',
-                'impactutils.mapping','impactutils.time'],)
+                'impactutils.mapping',
+                'impactutils.time',
+                'impactutils.comcat'],)
