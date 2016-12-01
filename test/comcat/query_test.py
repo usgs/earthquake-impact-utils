@@ -15,7 +15,7 @@ sys.path.insert(0,impactdir) #put this at the front of the system path, ignoring
 import numpy as np
 
 #local imports
-from impactutils.comcat.query import get_associated_ids
+from impactutils.comcat.query import get_associated_ids,get_location
 
 def test():
     eventids = {'ci37374687':['us200063en', 'nc72648731', 'at00o8jqfp'],
@@ -37,6 +37,11 @@ def test():
     for eventid,cmp_authid in non_auth_ids.items():
         authid,allids = get_associated_ids(eventid)
         assert cmp_authid == authid
+
+    eventid = 'usp000g650'
+    locstr_cmp = 'eastern Sichuan, China'
+    locstr = get_location(eventid)
+    assert locstr_cmp == locstr
 
 if __name__ == '__main__':
     test()
