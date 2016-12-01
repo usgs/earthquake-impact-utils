@@ -34,11 +34,14 @@ def get_location(eventid):
     :returns:
       Location string (i.e. "24km NE of Dharchula, India")
     """
-    url = URL_TEMPLATE.replace('[EVENTID]',eventid)
-    fh = request.urlopen(url)
-    data = fh.read().decode('utf-8')
-    fh.close()
-    jdict = json.loads(data)
-    location = jdict['properties']['place']
+    try:
+        url = URL_TEMPLATE.replace('[EVENTID]',eventid)
+        fh = request.urlopen(url)
+        data = fh.read().decode('utf-8')
+        fh.close()
+        jdict = json.loads(data)
+        location = jdict['properties']['place']
+    except:
+        location = None
     return location
     
