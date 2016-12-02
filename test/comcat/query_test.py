@@ -15,7 +15,7 @@ sys.path.insert(0,impactdir) #put this at the front of the system path, ignoring
 import numpy as np
 
 #local imports
-from impactutils.comcat.query import get_associated_ids
+from impactutils.comcat.query import ComCatInfo
 
 def test():
     eventids = {'ci37374687':['us200063en', 'nc72648731', 'at00o8jqfp'],
@@ -24,7 +24,8 @@ def test():
                 'nc72592670':['us200050nt', 'nn00531804']}
     
     for eventid,cmp_allids in eventids.items():
-        authid,allids = get_associated_ids(eventid)
+        ccinfo = ComCatInfo(eventid)
+        authid,allids = ccinfo.getAssociatedIds()
         
         assert authid == eventid
         for cmpid in cmp_allids:
@@ -35,8 +36,23 @@ def test():
                     'at00o30yrz':'ci37528064',
                     'us200050nt':'nc72592670'}
     for eventid,cmp_authid in non_auth_ids.items():
-        authid,allids = get_associated_ids(eventid)
+        ccinfo = ComCatInfo(eventid)
+        authid,allids = ccinfo.getAssociatedIds()
         assert cmp_authid == authid
 
+    #test the location function
+    cmpstr = 'off the east coast of Honshu, Japan'
+    eventid = 'usp000hvpg'
+    ccinfo = ComCatInfo(eventid)
+    locstr = ccinfo.getLocation()
+    assert locstr == cmpstr
+
+    #test the tsunami function
+    eventid = 'us1000778i'
+    ccinfo = ComCatInfo(eventid)
+    cmptsu = 1
+    tsunami = ccinfo.getTsunami()
+    assert cmptsu == tsunami
+        
 if __name__ == '__main__':
     test()
