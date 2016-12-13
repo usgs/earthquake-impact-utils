@@ -12,8 +12,8 @@ class ComCatInfo(object):
             data = fh.read().decode('utf-8')
             fh.close()
             self._jdict = json.loads(data)
-        except:
-            raise PagerException('Could not connect to ComCat server.')
+        except Exception as e:
+            raise Exception('Could not connect to ComCat server.').with_traceback(e.__traceback__)
 
     def getAssociatedIds(self):
         """Query ComCat for the event IDs associated with input ID.
