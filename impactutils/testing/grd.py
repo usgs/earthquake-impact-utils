@@ -14,7 +14,7 @@ def cmp(x, y):
     xgrid = GMTGrid.load(x)
     xdata = xgrid.getData()
     ygrid = GMTGrid.load(y)
-    ydata = xgrid.getData()
+    ydata = ygrid.getData()
     np.testing.assert_allclose(xdata, ydata)
 
     
