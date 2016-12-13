@@ -11,8 +11,11 @@ import matplotlib.patheffects as path_effects
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pyproj
+import cartopy.crs as ccrs
 
 XOFFSET = 4 #how many pixels between the city dot and the city text
+INCHES_PER_POINT = 1/72
 
 class CartopyCities(MapCities):
     """
@@ -20,8 +23,72 @@ class CartopyCities(MapCities):
     intersect with larger cities.
 
     """    
-       
-    def limitByMapCollision(self,ax,fontname='Bitstream Vera Sans',fontsize=10.0,shadow=False):
+    def limitByMapCollision2(self,ax,fontsize=10.0):
+        axbox = ax.get_position().bounds
+        oldfig = ax.get_figure()
+        figwidth,figheight = oldfig.get_figwidth(),oldfig.get_figheight()
+        newfig = plt.figure(figsize=(figwidth,figheight))
+        newax = newfig.add_axes(axbox,projection=ax.projection)
+        newfig.canvas.draw()
+
+        newdf = self._dataframe.sort_values('pop',0,ascending=False)
+
+        #make arrays of the edges of all the bounding boxes
+        tops = np.ones(len(newdf))*np.nan
+        bottoms = np.ones(len(newdf))*np.nan
+        lefts = np.ones(len(newdf))*np.nan
+        rights = np.ones(len(newdf))*np.nan
+
+        proj = pyproj.Proj(ax.projection.proj4_init)
+        
+        for i in range(0,len(tops)):
+            row = newdf.iloc[i]
+            city_name = row['name']
+            lon = row['lon']
+            lat = row['lat']
+            tx,ty = proj(lon,lat)
+            dx,dy = ax.transData.transform((tx,ty))
+            fx,fy = newfig.transFigure.inverted().transform((dx,dy))
+            nchar = len(city_name)
+            twidth = nchar * fontsize * INCHES_PER_POINT
+            theight = fontsize * INCHES_PER_POINT
+
+            #calculate bounding box in figure space
+            left = fx
+            right = fx + twidth/figwidth
+            bottom = fy
+            top = fy + theight/figheight
+            if left < 0 or right > 1 or bottom < 0 or top > 1:
+                continue
+            lefts[i] = left
+            rights[i] = right
+            bottoms[i] = bottom
+            tops[i] = top
+            
+        ikeep = []
+        if not np.isnan(lefts[0]):
+            ikeep.append(0)
+        for i in range(1,len(tops)):
+            left = lefts[i]
+            if np.isnan(left):
+                continue
+            right = rights[i]
+            bottom = bottoms[i]
+            top = tops[i]
+            clrx = (left > rights[0:i]) | (right < lefts[0:i])
+            clry = (top < bottoms[0:i]) | (bottom > tops[0:i])
+            allclr = (clrx | clry)
+            if all(allclr):
+                ikeep.append(i)
+            else:
+                x = 1
+
+        newdf = newdf.iloc[ikeep]
+        self._dataframe = newdf
+        return type(self)(newdf)
+    
+    def limitByMapCollision(self,ax,fontname='Bitstream Vera Sans',
+                            fontsize=10.0,shadow=False):
         """Create a smaller Cities dataset by removing smaller cities whose bounding
         boxes collide with larger cities.
 
@@ -29,13 +96,15 @@ class CartopyCities(MapCities):
         #######################################
         
         #######################################
-        
-        :param fontsize:
-          Desired font size for city labels.
-        :param fontname:
-          Desired font name for city labels.
+
         :param ax:
           Cartopy GeoAxes object.
+        :param fontname:
+          Desired font name for city labels.
+        :param fontsize:
+          Desired font size for city labels.
+        :param shadow:
+          Boolean indicating whether drop-shadow effect should be applied.
         :raises KeyError:
           When font name is not one of the supported Matplotlib font names OR
           when (if placement column exists) placement columns contain any values
@@ -44,6 +113,9 @@ class CartopyCities(MapCities):
         :returns:
           New Cities instance where smaller colliding cities have been removed.
         """
+        if not len(self._dataframe):
+            return self
+        
         #get the transformation from display units (pixels) to data units
         #we'll use this to set an offset in pixels between the city dot and
         #the city name.
@@ -141,10 +213,19 @@ class CartopyCities(MapCities):
         axmin,axmax,aymin,aymax = plt.axis()
         axbox = ax.get_position().bounds
         newfig = plt.figure(figsize=(fwidth,fheight))
-        newax = newfig.add_axes(axbox)
+        newax = newfig.add_axes(axbox,projection=ax.projection)
         newfig.canvas.draw()
         plt.sca(newax)
         plt.axis((axmin,axmax,aymin,aymax))
+
+        #figure out the corners of the axis in display units
+        llc_display = ax.transData.transform((axmin,aymin))
+        urc_display = ax.transData.transform((axmax,aymax))
+        dsp_xmin = llc_display[0]
+        dsp_ymin = llc_display[1]
+        dsp_xmax = urc_display[0]
+        dsp_ymax = urc_display[1]
+        
         #make arrays of the edges of all the bounding boxes
         tops = np.ones(len(df))*np.nan
         bottoms = np.ones(len(df))*np.nan
@@ -159,7 +240,7 @@ class CartopyCities(MapCities):
             row = df.iloc[i]
             left,right,bottom,top = self._getCityEdges(row,newax,newfig,fontname,fontsize)
             #remove cities that have any portion off the map
-            if left < axmin or right > axmax or bottom < aymin or top > aymax:
+            if left < dsp_xmin or right > dsp_xmax or bottom < dsp_ymin or top > dsp_ymax:
                 continue
             lefts[i] = left
             rights[i] = right
@@ -208,16 +289,19 @@ class CartopyCities(MapCities):
         data1 = self._display_to_data_transform.transform((display1))
         data2 = self._display_to_data_transform.transform((display2))
         data_x_offset = data2[0] - data1[0]
-        tx = row['lon'] + data_x_offset
-        ty = row['lat']
+
+        proj = pyproj.Proj(ax.projection.proj4_init)
+        tx,ty = proj(row['lon'],row['lat'])
+        tx = tx + data_x_offset
+
         if shadow:  
             th = ax.text(tx,ty,row['name'],fontname=fontname,color='black',
-                         fontsize=fontsize,ha=ha,va=va,zorder=zorder)
+                         fontsize=fontsize,ha=ha,va=va,zorder=zorder,transform=ccrs.PlateCarree())
             th.set_path_effects([path_effects.Stroke(linewidth=2.0, foreground='white'),
                                  path_effects.Normal()])
         else:     
             th = ax.text(tx,ty,row['name'],fontname=fontname,
-                         fontsize=fontsize,ha=ha,va=va,zorder=zorder)
+                         fontsize=fontsize,ha=ha,va=va,zorder=zorder,transform=ccrs.PlateCarree())
             
         return th
         
@@ -238,7 +322,7 @@ class CartopyCities(MapCities):
         th = self._renderRow(row,ax,fontname,fontsize,shadow=shadow)
         bbox = th.get_window_extent(fig.canvas.renderer)
         axbox = bbox.inverse_transformed(ax.transData)
-        left,bottom,right,top = axbox.extents
+        left,bottom,right,top = bbox.extents
         return (left,right,bottom,top)
 
 
