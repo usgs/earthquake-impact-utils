@@ -53,6 +53,13 @@ def test():
     cmptsu = 1
     tsunami = ccinfo.getTsunami()
     assert cmptsu == tsunami
+
+    #test the url method
+    eventid = 'us1000778i'
+    ccinfo = ComCatInfo(eventid)
+    cmpurl = 'http://earthquake.usgs.gov/earthquakes/eventpage/us1000778i'
+    url = ccinfo.getURL()
+    assert cmpurl == url
         
 if __name__ == '__main__':
     test()
