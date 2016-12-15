@@ -254,16 +254,34 @@ class ColorPalette(object):
         """
         return self._cmap
 
-    def getDataColor(self,value):
+    def getDataColor(self,value,color_format='mlab'):
         """Get the RGB color associated with a given data value.
 
         :param value:
           Data value for which color should be retrieved.
+        :param color_format:
+          Output format for color specification.  Choices are:
+            - 'mlab' Return a 4 element tuple of (R,G,B,A) with float values between 0 and 1.
+            - '255' Return a 4 element tuple of (R,G,B,A) with integer values betwen 0 and 255.
+            - 'hex' Return an HTML-style hex color specification (#RRGGBB).
         :returns:
           The color value associated with the input data value.
+        :raises:
+          AttributeError when color_format is not recognized.
         """
         normvalue = (value - self.vmin) / (self.vmax - self.vmin)
-        return self.cmap(normvalue)
+        color = self.cmap(normvalue)
+        if color_format == 'mlab':
+            return color
+        elif color_format == '255':
+            color255 = tuple([int(c*255) for c in color])
+            return color255
+        elif color_format == 'hex':
+            color255 = [int(c*255) for c in color]
+            hexcolor = ('#%02x%02x%02x' % (color255[0], color255[1], color255[2])).upper()
+            return hexcolor
+        else:
+            raise AttributeError('Color format %s is not supported.' % color_format)
 
         
         
