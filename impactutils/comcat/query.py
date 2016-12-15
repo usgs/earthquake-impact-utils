@@ -18,8 +18,6 @@ class ComCatInfo(object):
     def getAssociatedIds(self):
         """Query ComCat for the event IDs associated with input ID.
 
-        :param eventid:
-          Input eventid to be passed to ComCat.
         :returns:
           Tuple of (authoritative event ID, all other IDS associated with event) or (None,None) 
           if url cannot be reached.
@@ -32,8 +30,6 @@ class ComCatInfo(object):
     def getLocation(self):
         """Query ComCat for the location string associated with input ID.
 
-        :param eventid:
-          Input eventid to be passed to ComCat.
         :returns:
           Location string (i.e. "24km NE of Dharchula, India")
         """
@@ -43,11 +39,17 @@ class ComCatInfo(object):
     def getTsunami(self):
         """Query ComCat for the location string associated with input ID.
 
-        :param eventid:
-          Input eventid to be passed to ComCat.
         :returns:
           Location string (i.e. "24km NE of Dharchula, India")
         """
         tsunami = self._jdict['properties']['tsunami']
         return tsunami
 
+    def getURL(self):
+        """Query ComCat for the URL associated with input ID.
+
+        :returns:
+          Event URL, i.e http://earthquake.usgs.gov/earthquakes/eventpage/us20007z80
+        """
+        url = self._jdict['properties']['url']
+        return url

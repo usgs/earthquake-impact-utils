@@ -3,7 +3,7 @@
 VENV=impact
 PYVER=3.5
 
-DEPARRAY=(numpy matplotlib cartopy basemap pandas fiona shapely pytest pytest-cov pytest-mpl)
+DEPARRAY=(numpy matplotlib cartopy basemap pandas fiona shapely pytest pytest-cov pytest-mpl jupyter)
 
 
 #turn off whatever other virtual environment user might be in
