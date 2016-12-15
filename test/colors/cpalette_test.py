@@ -58,6 +58,8 @@ def test_simplemap():
     cp.vmin = -1.0
     cp.vmax = 4.0
     assert cp.getDataColor(0.5) == (0.29803921568627451, 0.29803921568627451, 0.29803921568627451, 1.0)
+    assert cp.getDataColor(0.5,'255') == (76,76,76,255)
+    assert cp.getDataColor(0.5,'hex') == ('#4C4C4C')
     assert cp._cdict == TEST_DICT
 
 def test_presets():
