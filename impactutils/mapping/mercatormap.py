@@ -106,6 +106,24 @@ class MercatorMap(object):
         """
         return self._ax
 
+    @property
+    def proj(self):
+        """Return the Cartopy CRS Mercator projection contained in the MercatorMap object.
+
+        :returns:
+          CRS Mercator projection object.
+        """
+        return self._proj
+
+    @property
+    def geoproj(self):
+        """Return the Cartopy CRS PlateCarree projection contained in the MercatorMap object.
+
+        :returns:
+          CRS PlateCarree projection object.
+        """
+        return self._geoproj
+
     def getFigureClone(self):
         """Return the second "hidden" figure object, which is used for determining city label collisions.
 
@@ -145,6 +163,8 @@ class MercatorMap(object):
           Boolean indicating whether drop-shadow effect should be applied.
         :param zorder:
           Desired plotting z-order for city labels and dots.
+        :returns:
+          Cities() instance containing all cities that were rendered on the map.
         :raises KeyError:
           When font name is not one of the supported Matplotlib font names.
         """
@@ -159,7 +179,9 @@ class MercatorMap(object):
         for idx,row in self._cities._dataframe.iterrows():
             self._ax.plot(row['lon'],row['lat'],'k.',transform=self._geoproj)
             th = self.renderRow(row,fontname,fontsize,shadow,zorder,test=False)
-        
+
+        return Cities(self._cities._dataframe)
+            
     def limitByMapCollision(self,fontname,fontsize,shadow,zorder):
         """Limit cities found on map by removing smaller cities that collide with larger ones.
 
