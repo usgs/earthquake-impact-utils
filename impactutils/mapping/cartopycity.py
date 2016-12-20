@@ -141,16 +141,6 @@ class CartopyCities(MapCities):
         ikeep = [0] #indices of rows to keep in dataframe
         for i in range(1,len(tops)):
             cname = newdf.iloc[i]['name']
-            if cname.lower().find('pacific grove') > -1:
-                allnames = newdf['name'].tolist()
-                sidx = allnames.index('Salinas')
-                sleft = lefts[sidx]
-                sright = rights[sidx]
-                sbottom = bottoms[sidx]
-                stop = tops[sidx]
-                foo = 1
-            if np.isnan(lefts[i]):
-                continue
             left = lefts[i]
             right = rights[i]
             bottom = bottoms[i]
@@ -194,7 +184,7 @@ class CartopyCities(MapCities):
             th = self._renderRow(row,ax,fontname,fontsize,shadow=shadow)
             ax.plot(row['lon'],row['lat'],'k.')
     
-    def _getCityBoundingBoxes(self,df,fontname,fontsize,ax,shadow=False):
+    def _getCityBoundingBoxes(self,df,fontname,fontsize,newax,shadow=False):
         """Get the axes coordinate system bounding boxes for each city.
         :param df:
           DataFrame containing information about cities.
@@ -207,30 +197,36 @@ class CartopyCities(MapCities):
         :returns:
           Numpy arrays of top,bottom,left and right edges of city bounding boxes.
         """
-        fig = ax.get_figure()
-        fwidth,fheight = fig.get_figwidth(),fig.get_figheight()
-        plt.sca(ax)
-        axmin,axmax,aymin,aymax = plt.axis()
-        axbox = ax.get_position().bounds
-        newfig = plt.figure(figsize=(fwidth,fheight))
-        newax = newfig.add_axes(axbox,projection=ax.projection)
-        newfig.canvas.draw()
-        plt.sca(newax)
-        plt.axis((axmin,axmax,aymin,aymax))
+        # fig = ax.get_figure()
+        # fwidth,fheight = fig.get_figwidth(),fig.get_figheight()
 
-        #figure out the corners of the axis in display units
-        llc_display = ax.transData.transform((axmin,aymin))
-        urc_display = ax.transData.transform((axmax,aymax))
-        dsp_xmin = llc_display[0]
-        dsp_ymin = llc_display[1]
-        dsp_xmax = urc_display[0]
-        dsp_ymax = urc_display[1]
+        # axbox = ax.get_position().bounds
+        # newfig = plt.figure(figsize=(fwidth,fheight))
+        # newax = newfig.add_axes(axbox,projection=ax.projection)
+        # newfig.canvas.draw()
+        # newax.set_extent((axmin,axmax,aymin,aymax),crs=ax.projection)
+        # plt.sca(newax)
+        # newxmin,newxmax,newymin,newymax = newax.get_extent()
+
+        # #compare the transformation objects of the old and new axes objects
+        # trans1 = ax.transData
+        # invtrans1 = trans1.inverted()
+        # trans2 = newax.transData
+        # invtrans2 = trans2.inverted()
+        # x1,y1 = (0.5,0.5)
+        # xdisp1,ydisp1 = trans1.transform((x1,y1))
+        # x2,y2 = invtrans2.transform((xdisp1,ydisp1))
+
+        # foo = 1
+
+        axmin,axmax,aymin,aymax = newax.get_extent()
         
         #make arrays of the edges of all the bounding boxes
         tops = np.ones(len(df))*np.nan
         bottoms = np.ones(len(df))*np.nan
         lefts = np.ones(len(df))*np.nan
         rights = np.ones(len(df))*np.nan
+        newfig = newax.get_figure()
         left,right,bottom,top = self._getCityEdges(df.iloc[0],newax,newfig,fontname,fontsize,shadow=shadow)
         lefts[0] = left
         rights[0] = right
@@ -240,7 +236,7 @@ class CartopyCities(MapCities):
             row = df.iloc[i]
             left,right,bottom,top = self._getCityEdges(row,newax,newfig,fontname,fontsize)
             #remove cities that have any portion off the map
-            if left < dsp_xmin or right > dsp_xmax or bottom < dsp_ymin or top > dsp_ymax:
+            if left < axmin or right > axmax or bottom < aymin or top > aymax:
                 continue
             lefts[i] = left
             rights[i] = right
@@ -296,12 +292,12 @@ class CartopyCities(MapCities):
 
         if shadow:  
             th = ax.text(tx,ty,row['name'],fontname=fontname,color='black',
-                         fontsize=fontsize,ha=ha,va=va,zorder=zorder,transform=ccrs.PlateCarree())
+                         fontsize=fontsize,ha=ha,va=va,zorder=zorder,transform=ax.projection)
             th.set_path_effects([path_effects.Stroke(linewidth=2.0, foreground='white'),
                                  path_effects.Normal()])
         else:     
             th = ax.text(tx,ty,row['name'],fontname=fontname,
-                         fontsize=fontsize,ha=ha,va=va,zorder=zorder,transform=ccrs.PlateCarree())
+                         fontsize=fontsize,ha=ha,va=va,zorder=zorder,transform=ax.projection)
             
         return th
         
@@ -322,7 +318,14 @@ class CartopyCities(MapCities):
         th = self._renderRow(row,ax,fontname,fontsize,shadow=shadow)
         bbox = th.get_window_extent(fig.canvas.renderer)
         axbox = bbox.inverse_transformed(ax.transData)
-        left,bottom,right,top = bbox.extents
+        left,bottom,right,top = axbox.extents
+        #put in a check here
+        pproj = pyproj.Proj(ax.projection.proj4_init)
+        gxmin,gymin = pproj(left,bottom,inverse=True)
+        gxmax,gymax = pproj(right,top,inverse=True)
+        axmin,axmax,aymin,aymax = ax.get_extent()
+        gaxmin,gaymin = pproj(axmin,aymin,inverse=True)
+        gaxmax,gaymax = pproj(axmax,aymax,inverse=True)
         return (left,right,bottom,top)
 
 

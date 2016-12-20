@@ -6,6 +6,7 @@ from __future__ import print_function
 import os.path
 import sys
 
+import pyproj
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
@@ -20,6 +21,30 @@ from impactutils.mapping.cartopycity import CartopyCities
 
 matplotlib.use('Agg')
 
+def get_two_figures(bounds,figsize):
+    xmin,xmax,ymin,ymax = bounds
+    clon = (xmin + xmax)/2
+    clat = (ymin + ymax)/2
+    proj = ccrs.Mercator(central_longitude=clon,
+                         min_latitude=ymin,
+                         max_latitude=ymax,
+                         globe=None)
+    geoproj = ccrs.PlateCarree()
+    
+    # set up an axes object
+    fig1 = plt.figure(figsize=figsize)
+    ax1 = fig1.add_axes([0,0,1,1],projection=proj)
+    ax1.set_extent([xmin, xmax, ymin, ymax],crs=geoproj)
+
+    # set up an identical axes object
+    fig2 = plt.figure(figsize=figsize)
+    ax2 = fig2.add_axes([0,0,1,1],projection=proj)
+    ax2.set_extent([xmin, xmax, ymin, ymax],crs=geoproj)
+
+    return (fig1,ax1,fig2,ax2)
+
+    
+
 def test():
     cityfile = os.path.join(homedir,'data','cities1000.txt')
     print('Test loading geonames cities file...')
@@ -29,21 +54,28 @@ def test():
     print('Test limiting cities using California bounds...')
     ymin,ymax = 32.394, 42.062
     xmin,xmax = -125.032, -114.002
+    xmin,ymin,xmax,ymax = -121.046000,32.143500,-116.046000,36.278500
     bcities = cities.limitByBounds((xmin,xmax,ymin,ymax))
     print('Done limiting cities using California bounds.')
 
     print('Test removing cities with collisions...')
     ymin,ymax = 32.394, 42.062
     xmin,xmax = -125.032, -114.002
-    plt.figure(figsize=(16,16))
-
     # set up you axes object with the projection of interest
-    fig = plt.figure(figsize=(8,8))
-    proj = ccrs.PlateCarree()
-    ax = plt.axes(projection=proj)
-    ax.set_extent([xmin, xmax, ymin, ymax])
-    mapcities = bcities.limitByMapCollision(ax)
-    mapcities.renderToMap(ax)
+    fig1,ax1,fig2,ax2 = get_two_figures((xmin,xmax,ymin,ymax),(8,8))
+
+    #compare the transformation objects of the old and new axes objects
+    trans1 = ax1.transData
+    invtrans1 = trans1.inverted()
+    trans2 = ax2.transData
+    invtrans2 = trans2.inverted()
+    x1,y1 = (0.5,0.5)
+    xdisp1,ydisp1 = trans1.transform((x1,y1))
+    x2,y2 = invtrans2.transform((xdisp1,ydisp1))
+
+    fig1.canvas.draw()
+    mapcities = bcities.limitByMapCollision(ax1)
+    mapcities.renderToMap(ax2)
     #plt.savefig('output.png')
     df = mapcities.getDataFrame()
     boxes = []
