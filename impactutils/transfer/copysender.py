@@ -22,9 +22,9 @@ class CopySender(Sender):
         if 'directory' not in self.properties:
             raise Exception('Property "directory" not specified.')
 
-        if not os.path.isdir(self.properties['directory']):
-            raise Exception(
-                'Output directory "%s" does not exist.' % self.properties['directory'])
+        for folder in self.directories:
+            if not os.path.isdir(folder):
+                raise Exception('Input directory %s does not exist.' % folder)
 
         for filename in self.files:
             shutil.copy(filename, self.properties['directory'])
@@ -33,7 +33,7 @@ class CopySender(Sender):
 
         for folder in self.directories:
             shutil.copytree(folder, self.properties['directory'])
-            nfiles += len(os.walk(folder).next()[2])
+            nfiles += sum([len(files) for r, d, files in os.walk(folder)])
 
         return nfiles
 
