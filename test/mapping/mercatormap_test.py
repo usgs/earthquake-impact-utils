@@ -23,7 +23,8 @@ from impactutils.mapping.mercatormap import MercatorMap
 
 matplotlib.use('Agg')
 
-def test(outfile=None,bounds=None):
+#TODO - Travis hangs on this test, rename it to test() once that issue is sorted out.
+def mmap_test(outfile=None,bounds=None):
     if bounds is None:
         bounds = xmin,ymin,xmax,ymax = -121.046000,-116.046000,32.143500,36.278500
     else:
@@ -50,5 +51,8 @@ if __name__ == '__main__':
         xmax = float(sys.argv[2])
         ymin = float(sys.argv[3])
         ymax = float(sys.argv[4])
+        bounds = (xmin,xmax,ymin,ymax)
+    else:
+        bounds = None
     outfile = os.path.join(os.path.expanduser('~'),'mercatormap.pdf')
-    test(outfile,bounds=(xmin,xmax,ymin,ymax))
+    mmap_test(outfile,bounds=None)
