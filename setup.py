@@ -15,4 +15,6 @@ setup(name='earthquake-impact-utils',
                 'impactutils.mapping',
                 'impactutils.time',
                 'impactutils.transfer',
+                'impactutils.extern',
+                'impactutils.extern.scp',
                 'impactutils.comcat'],)
