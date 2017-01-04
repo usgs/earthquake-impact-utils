@@ -13,35 +13,21 @@ sys.path.insert(0, shakedir)
 from impactutils.transfer.securesender import SecureSender
 
 
-def _testPassword(remotehost, remotefolder, username, password):
-    props = {'remotehost': remotehost,
-             'remotedirectory': remotefolder,
-             'username': username,
-             'password': password}
-    thisfile = os.path.abspath(__file__)
-    securesend = SecureSender(properties=props, files=[thisfile])
-    securesend.send()
-    securesend.delete()
-
-
 def _testKey(remotehost, remotefolder, privatekey):
-    props = {'remotehost': remotehost,
-             'remotedirectory': remotefolder,
-             'privatekey': privatekey}
+    props = {'remote_host': remotehost,
+             'remote_directory': remotefolder,
+             'private_key': privatekey}
     thisfile = os.path.abspath(__file__)
-    securesend = SecureSender(properties=props, files=[thisfile])
+    securesend = SecureSender(properties=props, local_files=[thisfile])
     securesend.send()
-    securesend.delete()
+
+    homedir = os.path.dirname(os.path.abspath(__file__)) #where is this script?
+    securesend = SecureSender(properties=props, local_directory=homedir)
+    securesend.send()
+    securesend.cancel(cancel_content='This is a cancel message')
 
 if __name__ == '__main__':
-    if len(sys.argv) == 5:
-        remotehost = sys.argv[1]
-        remotefolder = sys.argv[2]
-        username = sys.argv[3]
-        password = sys.argv[4]
-        _testPassword(remotehost, remotefolder, username, password)
-    else:
-        remotehost = sys.argv[1]
-        remotefolder = sys.argv[2]
-        privatekey = sys.argv[3]
-        _testKey(remotehost, remotefolder, privatekey)
+    remotehost = sys.argv[1]
+    remotefolder = sys.argv[2]
+    privatekey = sys.argv[3]
+    _testKey(remotehost, remotefolder, privatekey)

@@ -12,6 +12,7 @@ import shutil
 import io
 from distutils import spawn
 import textwrap
+import datetime
 
 # third party
 from Crypto.PublicKey import RSA
@@ -64,22 +65,35 @@ def _test_send(internalhub):
         f.close()
         props = {'java': javabin,
                  'jarfile': jarfile,
-                 'keyfile': keyfile,
+                 'privatekey': keyfile,
                  'configfile': configfile,
-                 'productsource': 'ci',
-                 'producttype': 'dummy',
-                 'productcode': 'ci2015abcd',
+                 'source': 'ci',
+                 'type': 'dummy',
+                 'code': 'ci2015abcd',
                  'eventsource': 'us',
                  'eventsourcecode': 'us1234abcd'}
+        optional_props = {'latitude':34.123,
+                          'longitude':-188.456,
+                          'depth':10.1,
+                          'eventtime':datetime.datetime.utcnow(),
+                          'magnitude':5.4}
+        product_props = {'maxmmi':5.4,
+                         'alert':'yellow'}
+        props.update(optional_props)
         thisfile = os.path.abspath(__file__)
-        pdl = PDLSender(properties=props, files=[thisfile])
-        pdl.send()
-        pdl.delete()
+        pdl = PDLSender(properties=props, local_files=[thisfile],product_properties=product_props)
+        print('Sending...')
+        nfiles,send_msg = pdl.send()
+        print(send_msg)
+        print('Deleting...')
+        delete_msg = pdl.delete()
+        print(send_msg)
     except Exception as obj:
-        pass
-    # remove temporary pdl folder with jarfile, config, and keyfile in it
-    if tempdir is not None:
-        shutil.rmtree(tempdir)
+        print(str(obj))
+    finally:
+        # remove temporary pdl folder with jarfile, config, and keyfile in it
+        if tempdir is not None:
+            shutil.rmtree(tempdir)
 
 if __name__ == '__main__':
     # this needs to be the hostname of a PDL server that does not require a
