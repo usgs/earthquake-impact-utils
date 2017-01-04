@@ -15,7 +15,7 @@ sys.path.insert(0, shakedir)
 
 from impactutils.transfer.emailsender import EmailSender
 
-def test_send(smtp_servers,sender,recipients):
+def send_test(smtp_servers,sender,recipients):
     subject = 'Testing...'
     message = 'This is a test message.'
     cancel_msg = 'This is a cancel message.'
@@ -43,4 +43,4 @@ if __name__ == '__main__':
     smtp_server = sys.argv[1]
     sender = sys.argv[2]
     recipients = sys.argv[3:]
-    test_send([smtp_server],sender,recipients)
+    send_test([smtp_server],sender,recipients)

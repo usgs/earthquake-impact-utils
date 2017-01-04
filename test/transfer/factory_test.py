@@ -22,9 +22,9 @@ def test():
     try:
         sender_class = get_sender_class('copy')
         cpsender = sender_class(
-            properties={'directory': tempdir}, files=[thisfile])
+            properties={'remote_directory': tempdir}, local_files=[thisfile])
         nfiles = cpsender.send()
-        nfiles = cpsender.delete()
+        nfiles = cpsender.cancel()
     except Exception as obj:
         raise SenderError('Failed to copy or delete a file.')
     shutil.rmtree(tempdir)
