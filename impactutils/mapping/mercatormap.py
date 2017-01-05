@@ -173,7 +173,8 @@ class MercatorMap(object):
         #cut down on the number of cities we can draw from
         self._cities = self._cities.limitByGrid(nx=2,ny=2,cities_per_grid=15)
         #pare down cities by removing small cities that collide with larger ones.
-        self.limitByMapCollision(fontname,fontsize,shadow,zorder)
+        if len(self._cities):
+            self.limitByMapCollision(fontname,fontsize,shadow,zorder)
         #set the active axes to be the "real" axes object that we want to draw on
         plt.sca(self._ax)
         for idx,row in self._cities._dataframe.iterrows():

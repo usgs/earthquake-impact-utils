@@ -23,10 +23,11 @@ def test():
                 'ci37528064':['at00o30yrz', 'nc72596550', 'us10004s7r'],
                 'nc72592670':['us200050nt', 'nn00531804']}
     
+    
     for eventid,cmp_allids in eventids.items():
         ccinfo = ComCatInfo(eventid)
         authid,allids = ccinfo.getAssociatedIds()
-        
+        authsource,othersources = ccinfo.getAssociatedSources()
         assert authid == eventid
         for cmpid in cmp_allids:
             assert cmpid in allids
@@ -60,6 +61,18 @@ def test():
     cmpurl = 'http://earthquake.usgs.gov/earthquakes/eventpage/us1000778i'
     url = ccinfo.getURL()
     assert cmpurl == url
+
+    #test getAssociatedSources method
+    sources = {'ci37374687':('ci',['us','nc','at']),
+               'nc72672610':('nc',['at','us']),
+               'ci37528064':('ci',['at','nc','us','gcmt']),
+               'nc72592670':('nc',['us','nn','gcmt'])}
+    for eid,src_tuple in sources.items():
+        authsrc,othersrc = src_tuple
+        ccinfo = ComCatInfo(eid)
+        authsource,othersources = ccinfo.getAssociatedSources()
+        assert authsource == authsrc
+        assert othersources == othersrc
         
 if __name__ == '__main__':
     test()
