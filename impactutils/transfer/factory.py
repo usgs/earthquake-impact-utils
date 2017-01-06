@@ -23,7 +23,7 @@ def get_sender_class(transfer_type):
     types = {'copy':CopySender,
              'ftp':FTPSender,
              'pdl':PDLSender,
-             'pdl':EmailSender,
+             'email':EmailSender,
              'ssh':SecureSender}
     if transfer_type not in types:
         raise KeyError('%s not a supported transfer type.' % transfer_type)
