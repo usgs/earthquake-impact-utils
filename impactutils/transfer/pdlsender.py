@@ -43,11 +43,12 @@ class PDLSender(Sender):
       Any string, int, float, or datetime.datetime object which the user would like to pass to PDL.
     """
 
-    _pdlcmd = '[JAVA] -jar [JARFILE] --send --status=[STATUS]"\
-        " --source=[SOURCE] --type=[TYPE] --code=[CODE]"\
-        " --eventsource=[EVENTSOURCE] --eventsourcecode=[EVENTSOURCECODE]"\
-        " [PRODUCT_PROPERTIES] [OPTIONAL_PROPERTIES]"\
-        " --privateKey=[PRIVATEKEY]  --configFile=[CONFIGFILE] [FILE] [DIRECTORY]'
+    _pdlcmd_pieces = ['[JAVA] -jar [JARFILE] --send --status=[STATUS]',
+                      '--source=[SOURCE] --type=[TYPE] --code=[CODE]',
+                      '--eventsource=[EVENTSOURCE] --eventsourcecode=[EVENTSOURCECODE]',
+                      '[PRODUCT_PROPERTIES] [OPTIONAL_PROPERTIES]',
+                      '--privateKey=[PRIVATEKEY]  --configFile=[CONFIGFILE] [FILE] [DIRECTORY]']
+    _pdlcmd = ' '.join(_pdlcmd_pieces)
 
     _required_properties = ['java', 'jarfile', 'privatekey', 'configfile',
                            'source', 'type', 'code',
@@ -104,11 +105,11 @@ class PDLSender(Sender):
             cmd = cmd.replace('[' + propkey.upper() + ']', propvalue)
         cmd = cmd.replace('[STATUS]','UPDATE')
         if self._local_files:
-            cmd = cmd.replace('[FILE]',self._local_files[0])
+            cmd = cmd.replace('[FILE]','--file=%s' % (self._local_files[0]))
         else:
             cmd = cmd.replace('[FILE]','')
         if self._local_directory:
-            cmd = cmd.replace('[DIRECTORY]',self._local_directory)
+            cmd = cmd.replace('[DIRECTORY]','--directory=%s' % (self._local_directory))
         else:
             cmd = cmd.replace('[DIRECTORY]','')
 
@@ -132,9 +133,9 @@ class PDLSender(Sender):
         for propkey in self._optional_properties:
             if propkey in self._properties:
                 if propkey == 'eventtime':
-                    opt_nuggets.append('%s=%s' % (propkey,self._properties[propkey].strftime(DATE_TIME_FMT)[0:23]))
+                    opt_nuggets.append('--%s=%s' % (propkey,self._properties[propkey].strftime(DATE_TIME_FMT)[0:23]))
                 else:
-                    fmt = '%s='+self._optional_properties_fmt[propkey]
+                    fmt = '--%s='+self._optional_properties_fmt[propkey]
                     opt_nuggets.append(fmt % (propkey,self._properties[propkey]))
         cmd = cmd.replace('[OPTIONAL_PROPERTIES]',' '.join(opt_nuggets))
                     
@@ -143,17 +144,17 @@ class PDLSender(Sender):
         retcode, stdout, stderr = get_command_output(cmd)
         if not retcode:
             fmt = 'Could not send product "%s" due to error "%s"'
-            tpl = (code, stdout + stderr)
+            tpl = (retcode, stdout + stderr)
             raise Exception(fmt % tpl)
 
         # return the number of files we just sent
         nfiles = 0
-        if self._properties['file']:
+        if self._local_files:
             nfiles += 1
-        if self._properties['directory']:
+        if self._local_directory:
             nfiles += sum([len(files) for r, d, files in os.walk(self._local_directory)])
 
-        return (nfiles,stdout)
+        return (nfiles,'%i files sent successfully: resulting in output: "%s"' % (nfiles,stdout.decode('utf-8')))
     
     def cancel(self,cancel_content=None):
         """Send a delete message out via PDL regarding the product in question.
