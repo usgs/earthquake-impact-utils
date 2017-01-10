@@ -2,6 +2,10 @@
 from datetime import datetime,timedelta
 import os.path
 from functools import partial
+import zipfile
+from urllib import request
+from urllib import parse
+import shutil
 
 #third party imports
 import fiona
@@ -11,8 +15,51 @@ import pyproj
 import numpy as np
 from shapely.ops import transform
 import pytz
+import bs4
 
 TIMEFMT = '%Y-%m-%dT%H:%M:%S'
+TIMEOUT = 30 #number of seconds to wait for urlopen requests
+
+def get_recent_timezone_data(outdir):
+    release_url = 'https://github.com/evansiroky/timezone-boundary-builder/releases/latest'
+    fh = request.urlopen(release_url,timeout=TIMEOUT)
+    html_data = fh.read().decode('utf-8')
+    fh.close()
+    soup = bs4.BeautifulSoup(html_data,'html.parser')
+    link = None
+    for anchor in soup.find_all('a'):
+        if 'href' in anchor.attrs:
+            link = anchor.attrs['href']
+            if link.find('timezones.shapefile.zip') > -1:
+                link = parse.urljoin('https://github.com',link)
+                break
+    
+    if link is None:
+        raise Exception('Could not find most recent time zone data set!')
+
+    fh = request.urlopen(link,timeout=TIMEOUT)
+    data = fh.read()
+    fh.close()
+    outfile = os.path.join(outdir,'timezones.shapefile.zip')
+    f = open(outfile,'wb')
+    f.write(data)
+    f.close()
+    myzip = zipfile.ZipFile(outfile,'r')
+    shpfile = None
+    for fpath in myzip.namelist():
+        fbase,fname = os.path.split(fpath)
+        outfile = os.path.join(outdir,fname)
+        actual_outfile = myzip.extract(fpath,path=outdir)
+        if actual_outfile != outfile:
+            shutil.move(actual_outfile,outfile)
+        
+        if fname.endswith('.shp'):
+            shpfile = outfile
+    tmpdir = os.path.join(outdir,fbase)
+    if os.path.isdir(tmpdir):
+        shutil.rmtree(tmpdir)
+    myzip.close()
+    return shpfile    
 
 def _get_utm_zone(clon):
     starts = np.arange(-180,186,6)
@@ -115,9 +162,11 @@ class ElapsedTime(object):
         return '%s %s, %i %s' % (bigtime,bigunit,smalltime,smallunit)
 
 class LocalTime(object):
-    def __init__(self,utctime,lat,lon):
+    def __init__(self,shpfile,utctime,lat,lon):
         """Create an instance of a LocalTime object.
 
+        :param shpfile:
+          Path to time zones shapefile found on this page: https://github.com/evansiroky/timezone-boundary-builder/releases
         :param utctime:
           Python datetime object in UTC.
         :param lat:
@@ -125,8 +174,6 @@ class LocalTime(object):
         :param lon:
           Longitude where local time is to be determined.
         """
-        homedir = os.path.dirname(os.path.abspath(__file__)) #where is this script?
-        shpfile = os.path.abspath(os.path.join(homedir,'..','data','combined_shapefile.shp'))
         self._input = collection(shpfile,'r')
         self._lat = lat
         self._lon = lon
