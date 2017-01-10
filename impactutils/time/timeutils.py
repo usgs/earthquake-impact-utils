@@ -1,12 +1,23 @@
 #stdlib imports
 from datetime import datetime,timedelta
 import os.path
+from functools import partial
 
 #third party imports
 import fiona
 from shapely.geometry import mapping, shape, Point
 from fiona import collection
+import pyproj
+import numpy as np
+from shapely.ops import transform
 import pytz
+
+TIMEFMT = '%Y-%m-%dT%H:%M:%S'
+
+def _get_utm_zone(clon):
+    starts = np.arange(-180,186,6)
+    zone = np.where((clon > starts) < 1)[0].min()
+    return zone
 
 class ElapsedTime(object):
     def __init__(self):
@@ -102,38 +113,88 @@ class ElapsedTime(object):
         if smalltime != 1:
             smallunit = smallunit+'s'
         return '%s %s, %i %s' % (bigtime,bigunit,smalltime,smallunit)
-    
-def get_local_time(utctime,lat,lon):
-    """Return local datetime object given UTC time and a lat/lon.
 
-    Note: This function currently has no knowledge of Daylight Savings Time, 
-    so the local times returned will currently only reflect the standard time
-    for each zone.
-    
-    :param utctime:
-      Python datetime object in UTC.
-    :param lat:
-      Latitude where local time is to be determined.
-    :param lon:
-      Longitude where local time is to be determined.
-    :returns:
-      Local datetime object.
-    """
-    homedir = os.path.dirname(os.path.abspath(__file__)) #where is this script?
-    jsonfile = os.path.abspath(os.path.join(homedir,'..','data','timezones.json'))
-    ltime = None
-    with collection(jsonfile, "r") as input:
-        schema = input.schema.copy()
-        for f in input:
+class LocalTime(object):
+    def __init__(self,utctime,lat,lon):
+        """Create an instance of a LocalTime object.
+
+        :param utctime:
+          Python datetime object in UTC.
+        :param lat:
+          Latitude where local time is to be determined.
+        :param lon:
+          Longitude where local time is to be determined.
+        """
+        homedir = os.path.dirname(os.path.abspath(__file__)) #where is this script?
+        shpfile = os.path.abspath(os.path.join(homedir,'..','data','combined_shapefile.shp'))
+        self._input = collection(shpfile,'r')
+        self._lat = lat
+        self._lon = lon
+        self._utctime = utctime
+        self._find_time_zone(utctime,lat,lon)
+
+    def _find_time_zone(self,utctime,lat,lon):
+        for f in self._input:
             zonepoly = shape(f['geometry'])
-            timezone = f['properties']['zone']
-            hours = int(timezone)
-            minutes = int((timezone - hours)*60)
-            offset = timedelta(hours=hours,minutes=minutes)
-            if zonepoly.contains(Point(lon,lat)):
-                ltime = utctime + offset
+            
+            timezone = f['properties']['tzid']
+            
+            xmin,ymin,xmax,ymax = zonepoly.bounds
+            clon = (xmin+xmax)/2
+            utmzone = _get_utm_zone(clon)
+            utmstr = '+proj=utm +zone=%i +ellps=WGS84 +datum=WGS84 +units=m +no_defs' % utmzone
+            geostr = '+proj=longlat +datum=WGS84 +ellps=WGS84'
+            projection = partial(
+                pyproj.transform,
+                pyproj.Proj(geostr),
+                pyproj.Proj(utmstr))
+
+            if lat < ymin or lat > ymax or lon < xmin or lon > xmax:
+                continue
+            pshape = transform(projection, zonepoly)
+            ppoint = transform(projection,Point(lon,lat))
+            try:
+                is_inside = pshape.contains(ppoint)
+            except:
+                is_inside = zonepoly.contains(Point(lon,lat))
+            if is_inside:
+                mytz = pytz.timezone(timezone)
+                utcoffset = mytz.utcoffset(utctime)
+                local_time = utctime + utcoffset
                 break
-    if ltime is None:
-        doffset = round(lon/15)
-        ltime = utctime + timedelta(seconds=doffset*3600)
-    return ltime
+        if local_time is None:
+            #this is effectively nautical time as the ultimate failover.
+            utcoffset = round(lon/15)
+            local_time = utctime + timedelta(seconds=utcoffset*3600)
+        self._local_time = local_time
+        self._timezone_str = timezone
+        self._utcoffset = utcoffset
+    
+
+    def getLocalTime(self):
+        """Return local datetime object given UTC time and a lat/lon.
+        
+        :returns:
+        Local datetime object.
+        """
+        return self._local_time
+
+    def getUTCOffset(self):
+        """Return UTC offset for input time,lat,lon.
+        
+        :returns:
+          UTC offset, as datetime.timedelta object.
+        """
+        return self._utcoffset
+
+    def getTimeZone(self):
+        return self._timezone
+
+    def update(self,utctime,lat,lon):
+        self._lat = lat
+        self._lon = lon
+        self._utctime = utctime
+        self._find_time_zone(utctime,lat,lon)
+
+    def __del__(self):
+        self._input.close()
