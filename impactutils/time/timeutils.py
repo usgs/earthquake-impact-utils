@@ -181,6 +181,7 @@ class LocalTime(object):
         self._find_time_zone(utctime,lat,lon)
 
     def _find_time_zone(self,utctime,lat,lon):
+        local_time = None
         for f in self._input:
             zonepoly = shape(f['geometry'])
             
