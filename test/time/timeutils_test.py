@@ -19,14 +19,18 @@ sys.path.insert(0,impactdir) #put this at the front of the system path, ignoring
 
 from impactutils.time.timeutils import LocalTime,ElapsedTime,get_recent_timezone_data
 
-def local_time_test():
+def local_time_test(shapefile=None):
     tdir = None
     try:
         tdir = tempfile.mkdtemp()
-        shpfile = get_recent_timezone_data(tdir)
+        if shapefile is None:
+            shpfile = get_recent_timezone_data(tdir)
+        else:
+            shpfile = shapefile
 
         standard_offsets = OrderedDict([('Manhattan',(40.7831, -73.9712,-5)),
                                         ('Denver',(39.704545,-104.941406,-7)),
+                                        ('Fiji',(-18.666,176.073,12)),
                                         ('LA',(33.864714,-118.212891,-8))])
         utctime = datetime(2016,1,1,20,23,00)
         ltime = None
@@ -94,7 +98,9 @@ def elapsed_test():
         assert compstr == estr
 
 if __name__ == '__main__':
-    local_time_test()
+    if len(sys.argv) > 1:
+        shpfile = sys.argv[1]
+    local_time_test(shapefile=shpfile)
     elapsed_test()
     
     
