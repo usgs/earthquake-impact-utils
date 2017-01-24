@@ -133,7 +133,8 @@ class EmailSender(Sender):
         finally:
             shutil.rmtree(tempdir)
         nfiles = len(self._local_files)
-        nfiles += sum([len(files) for r, d, files in os.walk(self._local_directory)])
+        if self._local_directory is not None:
+            nfiles += sum([len(files) for r, d, files in os.walk(self._local_directory)])
         fmt = '%i files successfully sent to %i recipients.'
         return (nfiles,fmt % (nfiles,len(self._properties['recipients'])))
 
