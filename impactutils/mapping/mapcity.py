@@ -39,7 +39,7 @@ class MapCities(Cities):
         self.SUGGESTED_FONTS = ['Bitstream Vera Sans','Times New Roman',
                                 'Courier New','Palatino LinoType',
                                 'Arial','Tahoma']
-        self.DEFAULT_FONT = 'Times New Roman'
+        self.DEFAULT_FONT = 'DejaVu Sans'
         self.DEFAULT_FONT_SIZE = 10.0
         if len(set(dataframe.columns).intersection(set(self.REQFIELDS))) < 3:
             raise KeyError('Missing some of required keys: %s' % self.REQFIELDS)

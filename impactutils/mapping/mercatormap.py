@@ -152,7 +152,7 @@ class MercatorMap(object):
         """
         return self._fontlist
 
-    def drawCities(self,fontname='Bitstream Vera Sans',fontsize=10.0,shadow=False,zorder=10):
+    def drawCities(self,fontname='DejaVu Sans',fontsize=10.0,shadow=False,zorder=10):
         """Render cities on map axes (obtainable through the axes property).
 
         :param fontname:
