@@ -154,7 +154,8 @@ class PDLSender(Sender):
         if self._local_directory:
             nfiles += sum([len(files) for r, d, files in os.walk(self._local_directory)])
 
-        return (nfiles,'%i files sent successfully: resulting in output: "%s"' % (nfiles,stdout.decode('utf-8')))
+        msg = '%i files sent successfully: resulting in output: "%s"' % (nfiles,stdout.decode('utf-8'))
+        return (nfiles,msg)
     
     def cancel(self,cancel_content=None):
         """Send a delete message out via PDL regarding the product in question.
