@@ -24,10 +24,11 @@ MMI = {'z0':np.arange(0,10),
                (255,145,0),
                (255,0,0),
                (200,0,0)],
-        'nan_color':(0,0,0,0)}
+        'nan_color':(0,0,0,0),
+        'resolution':0.1}
 
-POP = {'z0':[0,5,50,100,500,1000,5000,10000],
-       'z1':[5,50,100,500,1000,5000,10000,50000],
+POP = {'z0':[0,4,49,99,499,999,4999,9999],
+       'z1':[4,49,99,499,999,4999,9999,50000],
        'rgb0':[(255,255,255),
                (191,191,191),
                (159,159,159),
@@ -44,7 +45,9 @@ POP = {'z0':[0,5,50,100,500,1000,5000,10000],
                (63,63,63),
                (31,31,31),
                (0,0,0)],
-       'nan_color':(0,0,0,0)}
+       'nan_color':(0,0,0,0),
+       'resolution':1.0}
+
 
 TOPO = {'z0':[-100,0,50,350,1000,1800,2300,2600,4000,9000,9100],
         'z1':[0,50,350,1000,1800,2300,2600,4000,9000,9200],
@@ -70,14 +73,16 @@ TOPO = {'z0':[-100,0,50,350,1000,1800,2300,2600,4000,9000,9100],
                 (255,255,255),
                 (255,128,0),
                 (255,0,0)],
-        'nan_color':(128,128,128,0)}
+        'nan_color':(128,128,128,0),
+        'resolution':1.0}
 
 PALETTES = {'mmi':MMI,
             'pop':POP,
             'shaketopo':TOPO}
 
+DEFAULT_NCOLORS = 256
 class ColorPalette(object):
-    def __init__(self,name,z0,z1,rgb0,rgb1,nan_color=None):
+    def __init__(self,name,z0,z1,rgb0,rgb1,resolution=None,nan_color=0):
         """Construct a DataColorMap from input Z values and RGB specs.
 
         :param name:
@@ -90,8 +95,14 @@ class ColorPalette(object):
           Sequence of RGB triplets (values between 0-255).
         :param rgb1:
           Sequence of RGB triplets (values between 0-255).
+        :resolution:
+          Desired Resolution of the data values in data units.  For example, 
+          the preset population color map has a resolution of 1.0, meaning that we 
+          want to be able to distinguish between color values associated with a 
+          difference of 1 person.  This sets the number of colors to be:
+          max(256,int((max(z1)-min(z0))/resolution))
         :param nan_color:
-          Either None or RGBA quadruplet (A is for Alpha, where 0 is transparent, and 255 is opaque.)
+          Either 0 or RGBA quadruplet (A is for Alpha, where 0 is transparent, and 255 is opaque.)
         """
         #validate that lengths are all identical
         if len(z0) != len(z1) != len(rgb0) != len(rgb1):
@@ -134,7 +145,16 @@ class ColorPalette(object):
             cdict['blue'].append((x[i],blue0,blue1))
 
         self._cdict = cdict.copy()
-        self._cmap = LinearSegmentedColormap(name,cdict)
+        #choose the number of colors to store the colormap
+        #if we choose too low, then there may not be enough colors to 
+        #accurately capture the resolution of our data.
+        #this isn't perfect
+        numcolors = DEFAULT_NCOLORS
+        if resolution is not None:
+            ncolors_tmp = np.ceil((self._vmax - self._vmin)/resolution)
+            numcolors = max(DEFAULT_NCOLORS,ncolors_tmp)
+        
+        self._cmap = LinearSegmentedColormap(name,cdict,N=numcolors)
         self._cmap.set_bad(self.nan_color)
 
     @classmethod
@@ -153,7 +173,10 @@ class ColorPalette(object):
         rgb0 = PALETTES[preset]['rgb0'].copy()
         rgb1 = PALETTES[preset]['rgb1'].copy()
         nan_color = PALETTES[preset]['nan_color']
-        return cls(preset,z0=z0,z1=z1,rgb0=rgb0,rgb1=rgb1,nan_color=nan_color)
+        resolution = None
+        if 'resolution' in PALETTES[preset]:
+            resolution = PALETTES[preset]['resolution']
+        return cls(preset,z0=z0,z1=z1,rgb0=rgb0,rgb1=rgb1,nan_color=nan_color,resolution=resolution)
 
     @classmethod
     def getPresets(cls):
@@ -176,6 +199,7 @@ class ColorPalette(object):
         #For example, the following line defines a variable called nan_color.
         #$nan_color: 0,0,0,0
         #$name: test
+        #$resolution: 0.01
         Z0 R0  G0  B0  Z1  R1  G1  B1
         0   0   0   0   1  85  85  85
         1  85  85  85   2 170 170 170
@@ -193,21 +217,27 @@ class ColorPalette(object):
         """
         nan_color = (0,0,0,0)
         name = 'generic'
+        resolution = None
         f = open(filename,'rt')
         for line in f.readlines():
-            if line.startswith('#$nan_color'):
-                parts = line[2:].split(':')
+            tline = line.strip()
+            if tline.startswith('#$nan_color'):
+                parts = tline[2:].split(':')
                 value = parts[1].split(',')
                 colortuple = tuple([int(xpi) for xpi in value])
                 nan_color = colortuple
-            elif line.startswith('#$nan_color'):
-                parts = line[2:].split(':')
+            elif tline.startswith('#$name'):
+                parts = tline[2:].split(':')
                 name = parts[1].strip()
+            elif tline.startswith('#$resolution'):
+                parts = tline[2:].split(':')
+                resolution = float(parts[1].strip())
         f.close()
         df = pd.read_table(filename,comment='#',sep='\s+',header=0)
         rgb0 = list(zip(df.R0,df.G0,df.B0))
         rgb1 = list(zip(df.R1,df.G1,df.B1))
-        return cls(name=name,z0=df.Z0,z1=df.Z1,rgb0=rgb0,rgb1=rgb1,nan_color=nan_color)
+        return cls(name=name,z0=df.Z0,z1=df.Z1,rgb0=rgb0,rgb1=rgb1,
+                   nan_color=nan_color,resolution=resolution)
 
     @property
     def vmin(self):
