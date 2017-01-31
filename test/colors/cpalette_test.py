@@ -67,13 +67,33 @@ def test_presets():
     palettes.sort()
     assert palettes == ['mmi','pop','shaketopo']
 
-    mmi = cpalette.ColorPalette.fromPreset('mmi')
-    assert mmi.vmin == 0
-    assert mmi.vmax == 10
-
     pop = cpalette.ColorPalette.fromPreset('pop')
+    values = [(0,1.0),
+              (5,0.749),
+              (50,0.623),
+              (100,0.498),
+              (500,0.372),
+              (1000,0.247),
+              (5000,0.1215),
+              (10000,0.0)]
+    for value in values:
+        zvalue = value[0]
+        expected_red = value[1]
+        red = pop.getDataColor(zvalue)[0]
+        np.testing.assert_almost_equal(expected_red,red,decimal=2)
     assert pop.vmin == 0
     assert pop.vmax == 50000
+    
+    mmi = cpalette.ColorPalette.fromPreset('mmi')
+    values = [(0.5,1.0),
+              (1.5,0.874)]
+    for value in values:
+        zvalue = value[0]
+        expected_red = value[1]
+        red = mmi.getDataColor(zvalue)[0]
+        np.testing.assert_almost_equal(expected_red,red,decimal=2)
+    assert mmi.vmin == 0
+    assert mmi.vmax == 10
     
     topo = cpalette.ColorPalette.fromPreset('shaketopo')
     assert topo.vmin == -100
@@ -95,8 +115,8 @@ def test_file():
             shutil.rmtree(tdir)
 
 if __name__ == '__main__':
-    test_simplemap()
     test_presets()
+    test_simplemap()
     test_file()
 
     
