@@ -39,7 +39,7 @@ def _test_send(internalhub):
     host = [PDLHUB]
     port = 11235'''
 
-    PDLURL = 'http://ehppdl1.cr.usgs.gov/ProductClient.zip'
+    PDLURL = 'https://ehppdl1.cr.usgs.gov/ProductClient.zip'
     javabin = spawn.find_executable('java')
     tempdir = None
     try:

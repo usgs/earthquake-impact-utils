@@ -58,7 +58,7 @@ def test():
     #test the url method
     eventid = 'us1000778i'
     ccinfo = ComCatInfo(eventid)
-    cmpurl = 'http://earthquake.usgs.gov/earthquakes/eventpage/us1000778i'
+    cmpurl = 'https://earthquake.usgs.gov/earthquakes/eventpage/us1000778i'
     url = ccinfo.getURL()
     assert cmpurl == url
 

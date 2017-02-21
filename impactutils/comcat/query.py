@@ -2,7 +2,7 @@
 from urllib import request
 import json
 
-URL_TEMPLATE = 'http://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/[EVENTID].geojson'
+URL_TEMPLATE = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/[EVENTID].geojson'
 
 class ComCatInfo(object):
     def __init__(self,eventid):
@@ -79,7 +79,7 @@ class ComCatInfo(object):
         """Query ComCat for the URL associated with input ID.
 
         :returns:
-          Event URL, i.e http://earthquake.usgs.gov/earthquakes/eventpage/us20007z80
+          Event URL, i.e https://earthquake.usgs.gov/earthquakes/eventpage/us20007z80
         """
         url = self._jdict['properties']['url']
         return url
