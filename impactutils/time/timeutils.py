@@ -204,7 +204,11 @@ class LocalTime(object):
             try:
                 is_inside = pshape.contains(ppoint)
             except:
-                is_inside = zonepoly.contains(Point(lon,lat))
+                try:
+                    is_inside = zonepoly.contains(Point(lon,lat))
+                except:
+                    is_inside = False
+
             if is_inside:
                 mytz = pytz.timezone(timezone)
                 utcoffset = mytz.utcoffset(utctime)
