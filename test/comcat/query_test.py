@@ -72,7 +72,7 @@ def test():
         ccinfo = ComCatInfo(eid)
         authsource,othersources = ccinfo.getAssociatedSources()
         assert authsource == authsrc
-        assert othersources == othersrc
+        assert set(othersources) >= set(othersrc)
         
 if __name__ == '__main__':
     test()

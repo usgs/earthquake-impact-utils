@@ -28,7 +28,8 @@ def local_time_test(shapefile=None):
         else:
             shpfile = shapefile
 
-        standard_offsets = OrderedDict([('Manhattan',(40.7831, -73.9712,-5)),
+        standard_offsets = OrderedDict([('Zambia',(-8.470,30.085,2)),
+                                        ('Manhattan',(40.7831, -73.9712,-5)),
                                         ('Denver',(39.704545,-104.941406,-7)),
                                         ('Fiji',(-18.666,176.073,12)),
                                         ('LA',(33.864714,-118.212891,-8))])
