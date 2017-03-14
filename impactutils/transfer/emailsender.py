@@ -208,10 +208,12 @@ def _send_email(sender,address,msgtxt,smtp_servers):
     errormsg = []
     #let's try all of the email servers we know about before
     #admitting defeat...
+    servername = ''
     for server in smtp_servers:
         #print 'Trying server %s' % (server)
         try:
             session = smtplib.SMTP(server)
+            resp,servername = session.helo()
             session.sendmail(sender,address, msgtxt)
             messageSent = True
             session.quit()
@@ -237,7 +239,7 @@ def _send_email(sender,address,msgtxt,smtp_servers):
             errstr = errstr + str(errdict)
         raise Exception(str(errstr))
 
-    print('Message sent to "%s"' % address)
+    print('Message sent to "%s" via SMTP server "%s"' % (address,servername))
     # if bcc is not None:
     #     print('Bcc: %s' % ','.join(bcc))
         
