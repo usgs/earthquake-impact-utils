@@ -39,8 +39,23 @@ def send_test(smtp_servers,sender,recipients):
     sender.send()
     sender.cancel(cancel_content=cancel_msg)
 
+def bcc_test(smtp_server,sender,max_bcc,recipients):
+    subject = 'Testing...'
+    message = 'This is a test message.'
+    props = {'smtp_servers':[smtp_server],
+             'sender':sender,
+             'subject':subject,
+             'recipients':recipients,
+             'max_bcc':max_bcc,
+             'message':message}
+    sender = EmailSender(properties=props)
+    sender.send()
+
+    
 if __name__ == '__main__':
     smtp_server = sys.argv[1]
     sender = sys.argv[2]
-    recipients = sys.argv[3:]
-    send_test([smtp_server],sender,recipients)
+    max_bcc = int(sys.argv[3])
+    recipients = sys.argv[4:]
+    #send_test([smtp_server],sender,recipients)
+    bcc_test(smtp_server,sender,max_bcc,recipients)

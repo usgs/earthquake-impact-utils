@@ -18,7 +18,10 @@ import zipfile
 # local
 from .sender import Sender
 
-MAX_BCC = 25 #not sure what this really is...
+#default maximum number of bcc email addresses per message.
+#Not sure what this is normally set to on typical SMTP server,
+#so being conservative here
+MAX_BCC = 25 
 DEFAULT_CANCEL_MSG = 'This is a cancel message.'
 
 class EmailSender(Sender):
@@ -27,6 +30,12 @@ class EmailSender(Sender):
     EmailSender will send any number (within email server file size attachment limits) of files and/or
     directories to a set of recipients.  The file attachments can be zipped together into a single .zip 
     file attachment.  If you are sending more than one file, creating a zip file is HIGHLY recommended.
+
+    By default, the emails will be sent using Bcc lists of 25, meaning that a email messages to
+    multiple recipients will be sent to one person, with 25 Bcc recipients.  This value can be 
+    changed with the optional max_bcc property.  If you do not happen to control the SMTP server
+    through which you are sending emails, or know what its settings are, it is best (in the author's 
+    opinion) to be conservative in setting this value.
 
     To send a file to a list of email recipients:
     props = {}
@@ -53,17 +62,28 @@ class EmailSender(Sender):
     sender = EmailSender(properties=props,local_directory='/home/mrslate/termination_docs'])
     sender.send()
 
+    To send individual email messages (not using Bcc functionality) to a number of recipients:
+    props = {}
+    props['recipients'] = ['fred@foo.com','barney@bar.org']
+    props['smtp_servers'] = [my.smtp.server.org]
+    props['sender'] = 'mrslate@quarry.org'
+    props['subject'] = "You're fired!"
+    props['message'] = 'You two idiots are thicker than the rocks you break!'
+    props['max_bcc'] = 0
+
     Required properties:
       - smtp_servers List of strings indicating hostnames for SMTP servers to which you have permissions to connect.
       - sender Email address which will appear in the From: field in the recipient's email.
       - subject String containing the email subject line.
       - recipients List of valid email addresses to which message will be sent.
       - message Message which will be sent.
+    Optional properties:
+      -  
     '''
     _required_properties = ['smtp_servers','sender',
                             'subject','recipients','message']
                             
-    _optional_properties = ['zip_file']
+    _optional_properties = ['zip_file','max_bcc']
     def send(self):
         """
         Send a message to intended recipients with or without attachment.
@@ -80,6 +100,9 @@ class EmailSender(Sender):
         zip_file = None
         if 'zip_file' in self._properties:
             zip_file = self._properties['zip_file']
+        max_bcc = MAX_BCC
+        if 'max_bcc' in self._properties:
+            max_bcc = self._properties['max_bcc']
         sender = self._properties['sender']
         subject = self._properties['subject']
         text = self._properties['message']
@@ -87,7 +110,7 @@ class EmailSender(Sender):
         #send email to all recipients, attaching files as necessary or zipping into one file to
         #be attached.
         try:
-            address_tuples = _split_addresses(self._properties['recipients'])
+            address_tuples = _split_addresses(self._properties['recipients'],max_bcc)
             attachments = []
             
             for address,bcc in address_tuples:
@@ -123,10 +146,13 @@ class EmailSender(Sender):
                     if bcc is not None:
                         bccstr = ', '.join(bcc)
                         msg['Bcc'] = bccstr
-                        msgtxt = msg.as_string()
+                    msgtxt = msg.as_string()
                 else:
                     msgtxt = _get_encoded_message(address,subject,text,sender,attachments,bcc=bcc)
-                all_addresses = [address] + bcc
+                if bcc is not None:
+                    all_addresses = [address] + bcc
+                else:
+                    all_addresses = [address]
                 _send_email(sender,all_addresses,msgtxt,smtp_servers)
         except Exception as e:
             raise Exception('Could not send mail to %s with EmailSender. "%s"' % (address,str(e)))
@@ -167,7 +193,7 @@ class EmailSender(Sender):
             all_addresses = [address] + bcc
             _send_email(sender,all_addresses,msgtxt,smtp_servers)
             
-def _split_addresses(recipients):
+def _split_addresses(recipients,max_bcc):
     """Split addresses into a list of tuples of (recipient,bcclist).
 
     :param recipients:
@@ -177,10 +203,14 @@ def _split_addresses(recipients):
         - Email recipient.
         - list of recipients who will be bcc'd on the email to the first recipient.
     """
-    MAX_BCC = 5
+    
     tuples = []
+    if max_bcc == 0:
+        for recipient in recipients:
+            tuples.append((recipient,None))
+        return tuples
     istart = 0
-    iend = MAX_BCC
+    iend = max_bcc
     while istart < len(recipients):
         address = recipients[istart]
         iend = min(len(recipients),istart+MAX_BCC)

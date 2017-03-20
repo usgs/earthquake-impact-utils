@@ -5,6 +5,9 @@ import warnings
 #local imports
 from .city import Cities
 
+import matplotlib
+matplotlib.use('Agg')
+
 #third party imports
 import matplotlib.font_manager
 import matplotlib.patheffects as path_effects
