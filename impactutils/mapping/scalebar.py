@@ -254,14 +254,13 @@ def draw_scale(ax,pos='ll',padx=0.1,pady=0.1,font_size=None,units='km',zorder=20
 
     #convert scale bar location to data units
     bar_left,bar_bottom = disp2data.transform(ax2disp.transform((bar_left_axes,bar_bottom_axes)))
-    
-    #time to draw the scale bar
+
+    #figure out the edges of the whole scale bar
     bar_right = bar_left + bar_length_data
     bar_top = bar_bottom + bar_height
     rectx = [bar_left,bar_right,bar_right,bar_left,bar_left]
     recty = [bar_top,bar_top,bar_bottom,bar_bottom,bar_top]
-    plt.plot(rectx,recty,'black',zorder=zorder)
-
+    
     #draw the desired units across the top of the scale bar in the middle
     ux = bar_left + (bar_length_data/2)
     uy = bar_top + gap_height
@@ -297,3 +296,7 @@ def draw_scale(ax,pos='ll',padx=0.1,pady=0.1,font_size=None,units='km',zorder=20
     bottom = bar_bottom-tick_height
     top = bar_bottom
     ax.plot([left,left],[bottom,top],'k',zorder=zorder)
+
+    #draw the outline of the scale bar
+    ax.plot(rectx,recty,'black',zorder=zorder)
+    
