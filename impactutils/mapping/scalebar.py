@@ -264,7 +264,7 @@ def draw_scale(ax,pos='ll',padx=0.1,pady=0.1,font_size=None,units='km',zorder=20
     #draw the desired units across the top of the scale bar in the middle
     ux = bar_left + (bar_length_data/2)
     uy = bar_top + gap_height
-    plt.text(ux,uy,units,ha='center',fontsize=font_size)
+    ax.text(ux,uy,units,ha='center',fontsize=font_size,zorder=zorder)
 
     #now draw the divisions
     #odd number divisions only label the ends
