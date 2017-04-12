@@ -111,9 +111,9 @@ class EmailSender(Sender):
         #be attached.
         try:
             address_tuples = _split_addresses(self._properties['recipients'],max_bcc)
-            attachments = []
             
             for address,bcc in address_tuples:
+                attachments = []
                 if len(self._local_files) or self._local_directory:
                     if zip_file is not None:
                         #create a zip file with all of the contents
