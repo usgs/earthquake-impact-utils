@@ -75,6 +75,30 @@ class ComCatInfo(object):
         tsunami = self._jdict['properties']['tsunami']
         return tsunami
 
+    def getShakeGrid(self,local_file=None):
+        """Download ShakeMap grid.xml file for given event.
+        
+        :param local_file:
+          Path to local file where grid.xml file should be downloaded.
+        :returns:
+          url of ShakeMap grid.xml file, 
+          path to local file containing grid.xml file data if local_file specified, 
+          or None if connection to ComCat fails.
+        """
+        try:
+            shake_url = self._jdict['properties']['products']['shakemap'][0]['contents']['download/grid.xml']['url']
+            if local_file is not None:
+                fh = request.urlopen(shake_url)
+                data = fh.read()
+                f = open(local_file,'w')
+                f.write(data)
+                f.close()
+                fh.close()
+                return local_file
+            return shake_url
+        except:
+            return None
+
     def getURL(self):
         """Query ComCat for the URL associated with input ID.
 
