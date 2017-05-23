@@ -89,7 +89,7 @@ class ComCatInfo(object):
             shake_url = self._jdict['properties']['products']['shakemap'][0]['contents']['download/grid.xml']['url']
             if local_file is not None:
                 fh = request.urlopen(shake_url)
-                data = fh.read()
+                data = fh.read().decode('utf-8')
                 f = open(local_file,'w')
                 f.write(data)
                 f.close()
