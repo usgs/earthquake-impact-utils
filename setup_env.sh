@@ -24,7 +24,10 @@ conda install -y psutil
 #do pip installs of those things that are not available via conda.
 pip install flake8
 pip install pep8-naming
-pip -v install git+git://github.com/gem/oq-hazardlib.git
+
+curl --max-time 60 --retry 3 -L https://github.com/gem/oq-engine/archive/master.zip -o openquake.zip
+pip -v install --no-deps openquake.zip
+rm openquake.zip
 
 #tell the user they have to activate this environment
 echo "Type 'source activate ${VENV}' to use this new virtual environment."
