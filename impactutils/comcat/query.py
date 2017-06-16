@@ -3,6 +3,58 @@ from urllib import request
 import json
 
 URL_TEMPLATE = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/[EVENTID].geojson'
+GEOSERVE_URL = 'http://earthquake.usgs.gov/ws/geoserve/regions.json?latitude=[LAT]&longitude=[LON]'
+
+class GeoServe(object):
+    """Class to wrap around the NEIC GeoServe web service.
+
+    """
+    def __init__(self,lat,lon):
+        """Initialize object with data from web service for a given latitude/longitude coordinate.
+        
+        :param lat:
+          Desired latitude.
+        :param lon:
+          Desired longitude.
+        """
+        url = GEOSERVE_URL.replace('[LAT]',str(lat))
+        url = url.replace('[LON]',str(lon))
+        self._jdict = self._getJSONContent(url)
+
+    def updatePosition(self,lat,lon):
+        """Update internal data for a given latitude/longitude coordinate.
+        
+        :param lat:
+          Desired latitude.
+        :param lon:
+          Desired longitude.
+        """
+        url = GEOSERVE_URL.replace('[LAT]',str(lat))
+        url = url.replace('[LON]',str(lon))
+        self._jdict = self._getJSONContent(url)
+
+    def getAuthoritative(self):
+        """Return the authoritative region network code and type 
+        ('NA', 'anss', or 'contributor').
+
+        :returns:
+          Tuple of (authoritative region, region type)
+        """
+        auth_source = 'US'
+        auth_type = 'NA'
+        if len(self._jdict['authoritative']['features']):
+            auth_source = self._jdict['authoritative']['features'][0]['properties']['network']
+            #we seem to have all the worlds networks in geoserve, not just ANSS.  A type of 'anss'
+            #indicates that this region is an ANSS one.  
+            auth_type = self._jdict['authoritative']['features'][0]['properties']['type']
+        return (auth_source,auth_type)
+        
+    def _getJSONContent(self,url):
+        fh = request.urlopen(url)
+        data = fh.read().decode('utf-8')
+        fh.close()
+        content = json.loads(data)
+        return content
 
 class ComCatInfo(object):
     def __init__(self,eventid):

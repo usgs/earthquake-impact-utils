@@ -15,9 +15,27 @@ sys.path.insert(0,impactdir) #put this at the front of the system path, ignoring
 import numpy as np
 
 #local imports
-from impactutils.comcat.query import ComCatInfo
+from impactutils.comcat.query import ComCatInfo,GeoServe
 
-def test():
+def test_geoserve():
+    positions = [{'name':'california','coords':(37.28935,-119.53125),'source':'NC','type':'anss'},
+                 {'name':'alaska','coords':(63.379217,-151.699219),'source':'AK','type':'anss'},
+                 {'name':'aleutians','coords':(53.209322,-167.34375),'source':'US','type':'NA'},
+                 {'name':'japan','coords':(36.700907,138.999023),'source':'JMA','type':'contributor'}]
+
+    gs = GeoServe(0,0)
+    for pdict in positions:
+        lat,lon = pdict['coords']
+        psource = pdict['source']
+        ptype = pdict['type']
+        pname = pdict['name']
+        print('Testing %s authoritative region...' % pname)
+        gs.updatePosition(lat,lon)
+        authsrc,authtype = gs.getAuthoritative()
+        assert authsrc == psource
+        assert authtype == ptype
+
+def test_cc():
     eventids = {'ci37374687':['us200063en', 'nc72648731', 'at00o8jqfp'],
                 'nc72672610':['at00oboavh', 'us10006chu'],
                 'ci37528064':['at00o30yrz', 'nc72596550', 'us10004s7r'],
@@ -75,4 +93,5 @@ def test():
         assert set(othersources) >= set(othersrc)
         
 if __name__ == '__main__':
-    test()
+    test_cc()
+    test_geoserve()
