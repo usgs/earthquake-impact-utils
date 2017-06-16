@@ -71,6 +71,27 @@ class EmailSender(Sender):
     props['message'] = 'You two idiots are thicker than the rocks you break!'
     props['max_bcc'] = 0
 
+    To send batch email messages (using Bcc functionality), preserving anonymity 
+    betweeen recipients by using the sender as the primary recipient:
+    props = {}
+    props['recipients'] = ['fred@foo.com','barney@bar.org']
+    props['smtp_servers'] = [my.smtp.server.org]
+    props['sender'] = 'mrslate@quarry.org'
+    props['subject'] = "You're fired!"
+    props['message'] = 'You two idiots are thicker than the rocks you break!'
+    props['max_bcc'] = 25
+
+    To send batch email messages (using Bcc functionality), preserving anonymity 
+    betweeen recipients by setting the primary_recipient property:
+    props = {}
+    props['recipients'] = ['fred@foo.com','barney@bar.org']
+    props['smtp_servers'] = [my.smtp.server.org]
+    props['sender'] = 'mrslate@quarry.org'
+    props['subject'] = "You're fired!"
+    props['message'] = 'You two idiots are thicker than the rocks you break!'
+    props['primary_recipient'] = 'employees@quarry.org'
+    props['max_bcc'] = 25
+
     Required properties:
       - smtp_servers List of strings indicating hostnames for SMTP servers to which you have permissions to connect.
       - sender Email address which will appear in the From: field in the recipient's email.
@@ -103,6 +124,17 @@ class EmailSender(Sender):
         max_bcc = MAX_BCC
         if 'max_bcc' in self._properties:
             max_bcc = self._properties['max_bcc']
+
+        #if using Bcc, try to maintain privacy between recipients by using either
+        #an empty string (default) or use the
+        #primary_recipient property, if set.
+        primary_recipient = None
+        if max_bcc:
+            if 'primary_recipient' in self._properties:
+                primary_recipient = self._properties['primary_recipient']
+            else:
+                primary_recipient = ''
+            
         sender = self._properties['sender']
         subject = self._properties['subject']
         text = self._properties['message']
@@ -110,7 +142,8 @@ class EmailSender(Sender):
         #send email to all recipients, attaching files as necessary or zipping into one file to
         #be attached.
         try:
-            address_tuples = _split_addresses(self._properties['recipients'],max_bcc)
+            address_tuples = _split_addresses(self._properties['recipients'],max_bcc,
+                                              primary_recipient)
             
             for address,bcc in address_tuples:
                 attachments = []
@@ -193,7 +226,7 @@ class EmailSender(Sender):
             all_addresses = [address] + bcc
             _send_email(sender,all_addresses,msgtxt,smtp_servers)
             
-def _split_addresses(recipients,max_bcc):
+def _split_addresses(recipients,max_bcc,primary_recipient):
     """Split addresses into a list of tuples of (recipient,bcclist).
 
     :param recipients:
@@ -212,11 +245,11 @@ def _split_addresses(recipients,max_bcc):
     istart = 0
     iend = max_bcc
     while istart < len(recipients):
-        address = recipients[istart]
-        iend = min(len(recipients),istart+MAX_BCC)
-        bcclist = recipients[istart+1:iend]
+        address = primary_recipient
+        iend = min(len(recipients),istart+(max_bcc-1))
+        bcclist = recipients[istart:iend]
         tuples.append((address,bcclist))
-        istart = iend + 1
+        istart = iend
         
     return tuples
     
