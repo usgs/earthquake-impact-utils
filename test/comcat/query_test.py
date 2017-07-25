@@ -17,7 +17,7 @@ import numpy as np
 #local imports
 from impactutils.comcat.query import ComCatInfo,GeoServe
 
-def test_geoserve():
+def geoserve():
     positions = [{'name':'california','coords':(37.28935,-119.53125),'source':'NC','type':'anss'},
                  {'name':'alaska','coords':(63.379217,-151.699219),'source':'AK','type':'anss'},
                  {'name':'aleutians','coords':(53.209322,-167.34375),'source':'US','type':'NA'},
