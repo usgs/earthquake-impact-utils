@@ -5,6 +5,7 @@ import urllib.request as request
 import tempfile
 import os.path
 import sys
+from datetime import datetime
 
 #hack the path so that I can debug these functions if I need to
 homedir = os.path.dirname(os.path.abspath(__file__)) #where is this script?
@@ -21,7 +22,7 @@ def geoserve():
     positions = [{'name':'california','coords':(37.28935,-119.53125),'source':'NC','type':'anss'},
                  {'name':'alaska','coords':(63.379217,-151.699219),'source':'AK','type':'anss'},
                  {'name':'aleutians','coords':(53.209322,-167.34375),'source':'US','type':'NA'},
-                 {'name':'japan','coords':(36.700907,138.999023),'source':'JMA','type':'contributor'}]
+                 {'name':'japan','coords':(36.700907,138.999023),'source':'US','type':'NA'}]
 
     gs = GeoServe(0,0)
     for pdict in positions:
@@ -80,6 +81,17 @@ def test_cc():
     url = ccinfo.getURL()
     assert cmpurl == url
 
+    #test the getEventParams method
+    eventid = 'us1000778i'
+    ccinfo = ComCatInfo(eventid)
+    cmpdict = {'lat':-42.7373,
+               'lon':173.054,
+               'depth':15.11,
+               'magnitude':7.8,
+               'time':datetime(2016,11,13,11,2,56)}
+    edict = ccinfo.getEventParams()
+    assert edict == cmpdict
+    
     #test getAssociatedSources method
     sources = {'ci37374687':('ci',['us','nc','at']),
                'nc72672610':('nc',['at','us']),

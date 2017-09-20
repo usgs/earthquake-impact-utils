@@ -1,9 +1,31 @@
 #stdlib imports
 from urllib import request
 import json
+from datetime import datetime
 
 URL_TEMPLATE = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/[EVENTID].geojson'
 GEOSERVE_URL = 'http://earthquake.usgs.gov/ws/geoserve/regions.json?latitude=[LAT]&longitude=[LON]'
+
+TIMEOUT = 15
+WAITSECS = 3
+
+def _get_url_data(url,timeout=TIMEOUT):
+    try:
+        fh = request.urlopen(url,timeout=timeout)
+        data = fh.read().decode('utf-8')
+        fh.close()
+        return data
+    except HTTPError as htpe:
+        if htpe.code == 503:
+            try:
+                time.sleep(WAITSECS)
+                fh = request.urlopen(url,timeout=timeout)
+                data = fh.read().decode('utf-8')
+                fh.close()
+                return data
+            except Exception as msg:
+                raise Exception('Error downloading data from url %s.  "%s".' % (url,msg))
+    
 
 class GeoServe(object):
     """Class to wrap around the NEIC GeoServe web service.
@@ -16,6 +38,9 @@ class GeoServe(object):
           Desired latitude.
         :param lon:
           Desired longitude.
+        :raises:
+          Exception if the GeoServe URL cannot be reached after two attempts, 
+          and a suitable timeout period.
         """
         url = GEOSERVE_URL.replace('[LAT]',str(lat))
         url = url.replace('[LON]',str(lon))
@@ -50,9 +75,7 @@ class GeoServe(object):
         return (auth_source,auth_type)
         
     def _getJSONContent(self,url):
-        fh = request.urlopen(url)
-        data = fh.read().decode('utf-8')
-        fh.close()
+        data = _get_url_data(url,timeout=TIMEOUT)
         content = json.loads(data)
         return content
 
@@ -60,9 +83,7 @@ class ComCatInfo(object):
     def __init__(self,eventid):
         url = URL_TEMPLATE.replace('[EVENTID]',eventid)
         try:
-            fh = request.urlopen(url)
-            data = fh.read().decode('utf-8')
-            fh.close()
+            data = _get_url_data(url)
             self._jdict = json.loads(data)
         except Exception as e:
             raise Exception('Could not connect to ComCat server.').with_traceback(e.__traceback__)
@@ -109,6 +130,28 @@ class ComCatInfo(object):
         newsources.remove(authsource)
         return (authsource,newsources)
 
+    def getEventParams(self):
+        """Query ComCat for the time,lat,lon,depth, and magnitude associated with input ID.
+
+        :returns:
+          Dictionary containing:
+            - time Datetime object representing earthquake origin time in UTC.
+            - lat Origin latitude.
+            - lon Origin longitude.
+            - depth Origin depth.
+            - magnitude Origin magnitude.
+        """
+        lon,lat,depth = self._jdict['geometry']['coordinates']
+        itime = self._jdict['properties']['time']
+        etime = datetime.utcfromtimestamp(int(itime/1000))
+        mag = self._jdict['properties']['mag']
+        edict = {'time':etime,
+                 'lat':lat,
+                 'lon':lon,
+                 'depth':depth,
+                 'magnitude':mag}
+        return edict
+    
     def getLocation(self):
         """Query ComCat for the location string associated with input ID.
 
@@ -140,12 +183,10 @@ class ComCatInfo(object):
         try:
             shake_url = self._jdict['properties']['products']['shakemap'][0]['contents']['download/grid.xml']['url']
             if local_file is not None:
-                fh = request.urlopen(shake_url)
-                data = fh.read().decode('utf-8')
+                data = _get_url_data(shake_url)
                 f = open(local_file,'w')
                 f.write(data)
                 f.close()
-                fh.close()
                 return local_file
             return shake_url
         except:
