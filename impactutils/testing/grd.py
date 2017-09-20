@@ -2,7 +2,7 @@
 import numpy as np
 from mapio.gmt import GMTGrid
 
-def cmp(x, y, rtol = 1e-6, atol = 0):
+def grdcmp(x, y, rtol = 1e-6, atol = 0):
     """
     Compare contents of two GMT GRD files using numpy assert method. 
 
