@@ -6,4 +6,5 @@ build
 .cache
 .coverage
 .coverage.xml
+htmlcov
 earthquake_impact_utils.egg-info/

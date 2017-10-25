@@ -13,7 +13,7 @@ install:
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
     - conda info -a
-    - bash setup_env.sh
+    - bash install.sh
     - source activate impact
     #---------------------
     # Install impactutils
@@ -28,7 +28,7 @@ before_script:
 script:
     - export PYTHONPATH="."
     - echo `which py.test`
-    - py.test --mpl --cov=impactutils
+    - py.test --cov=impactutils
 after_success:
     - pip install codecov codacy-coverage
     - codecov
