@@ -105,21 +105,21 @@ def test_hdf_arrays():
     try:
         container = HDFContainer.create(testfile)
 
-        #test simple array
+        #test simple array, without compression
         print('Test simple array...')
         data = np.random.rand(4,3)
         metadata = {'xmin':54.1,'xmax':123.1}
-        container.setArray('testdata1',data,metadata)
+        container.setArray('testdata1',data,metadata,compression=False)
         outdata,outmetadata = container.getArray('testdata1')
         np.testing.assert_array_equal(outdata,data)
         assert outmetadata == metadata
 
-        #test array with nans
+        #test array with nans, and compression on
         print('Test nans array...')
         data = np.random.rand(4,3)
         data[1,1] = np.nan
         metadata = {'xmin':54.1,'xmax':123.1}
-        container.setArray('testdata2',data,metadata)
+        container.setArray('testdata2',data,metadata,compression=True)
         outdata,outmetadata = container.getArray('testdata2')
         np.testing.assert_array_equal(outdata,data)
         assert outmetadata == metadata

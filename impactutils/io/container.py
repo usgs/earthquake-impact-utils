@@ -210,7 +210,7 @@ class HDFContainer(object):
     
     #########Arrays#######################################
     
-    def setArray(self,name,array,metadata=None):
+    def setArray(self,name,array,metadata=None,compression=True):
         """
         Store a numpy array and optional metadata in the HDF file, in group name.
 
@@ -223,11 +223,17 @@ class HDFContainer(object):
                             np.float64, np.bool_, np.int64,
                             dict, datetime, pd.Timestamp,
                             collections.OrderedDict
+          compression (bool): Boolean indicating whether dataset should be compressed
+                              using the gzip algorithm.
         Returns:
           (Dataset) HDF5 Dataset object.
         """
+        if compression:
+            compression = 'gzip'
+        else:
+            compression = None
         array_name = '__array_%s__' % name
-        dset = self._hdfobj.create_dataset(array_name, data=array)
+        dset = self._hdfobj.create_dataset(array_name, data=array,compression=compression)
         if metadata:
             for key, value in metadata.items():
                 dset.attrs[key] = value
