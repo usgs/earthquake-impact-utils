@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/usgs/earthquake-impact-utils.svg?branch=build)](https://travis-ci.org/usgs/earthquake-impact-utils)
+[![codecov](https://codecov.io/gh/usgs/earthquake-impact-utils/branch/master/graph/badge.svg)](https://codecov.io/gh/usgs/earthquake-impact-utils)
+
+
 # earthquake-impact-utils
 
 ## Introduction

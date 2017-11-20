@@ -11,11 +11,8 @@ setup(name='earthquake-impact-utils',
       url='https://github.com/usgs/earthquake-impact-utils',
       package_data={
           'impactutils': [
-              os.path.join('data', 'combined_shapefile.shp'),
-              os.path.join('data', 'combined_shapefile.dbf'),
-              os.path.join('data', 'combined_shapefile.shx'),
-              os.path.join('data', 'combined_shapefile.prj'),
-              os.path.join('data', 'cities1000.txt')]},
+              os.path.join('data', 'cities1000.txt')]
+      },
       packages=['impactutils', 'impactutils.textformat',
                 'impactutils.io', 'impactutils.colors',
                 'impactutils.testing',
