@@ -19,7 +19,7 @@ DEPARRAY=(numpy=1.11\
           matplotlib=2.0.2\
           h5py=2.7.0 \
           cartopy=0.15.1\
-	  decorator=4.1.2\
+          decorator=4.1.2\
           pandas=0.20.3\
           fiona=1.7.8\
           shapely=1.5.17 \
