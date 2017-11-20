@@ -12,6 +12,8 @@ if [ ! "$conda" ] ; then
     export PATH="$HOME/miniconda/bin:$PATH"
 fi
 
+conda update -q -y conda
+conda config --prepend channels conda-forge
 
 DEPARRAY=(numpy=1.11\
           matplotlib=2.0.2\
