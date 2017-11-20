@@ -27,14 +27,14 @@ def test(outfile=None, bounds=None):
     figsize = (7, 7)
     cities = Cities.fromDefault()
     mmap = MercatorMap(bounds, figsize, cities, padding=0.5)
-#    fig = mmap.figure
-#    ax = mmap.axes
+    fig = mmap.figure
+    ax = mmap.axes
 
-#    fig.canvas.draw()
+    fig.canvas.draw()
 
-#    ax.coastlines(resolution="10m", zorder=10)
-#    plt.show()
-#    mmap.drawCities(shadow=True)
+    ax.coastlines(resolution="10m", zorder=10)
+    plt.show()
+    mmap.drawCities(shadow=True)
     if outfile is not None:
         plt.savefig(outfile)
     return
