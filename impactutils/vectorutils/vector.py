@@ -9,22 +9,21 @@ class Vector(object):
     """
     Three-dimensional vector object, stored as three floats of x,y,z.
 
-    To do 
+    Todo:
         - Optimize/vectorize calculations like dot/cross for arrays of
-          vectors. 
+          vectors.
     """
 
     def __init__(self, x, y, z):
         """
         Create three dimensional vector object in cartesian space.
 
-        :param x:
-            x coordinate (float). 
-        :param y:
-            y coordinate (float). 
-        :param z:
-            z coordinate (float). 
-        :returns:
+        Args:
+            x: x coordinate (float).
+            y: y coordinate (float).
+            z: z coordinate (float).
+
+        Returns:
             Vector object containing x,y,z coordinates as floats.
         """
         self.x = float(x)
@@ -34,15 +33,15 @@ class Vector(object):
     @classmethod
     def fromPoint(cls, oqpoint):
         """
-        Class method which allows user to create a Vector from a GEM Hazardlib 
-        Point object.  The Point lat, lon, depth values are converted to 
+        Class method which allows user to create a Vector from a GEM Hazardlib
+        Point object.  The Point lat, lon, depth values are converted to
         Earth-Centered-Earth-Fixed (ECEF) cartesian coordinates.
 
-        :param oqpoint:
-            Openquake 
-            `Point <https://github.com/gem/oq-hazardlib/blob/master/openquake/hazardlib/geo/point.py>`))
-            object. 
-        :returns:
+        Args:
+            oqpoint: Openquake `Point <https://github.com/gem/oq-hazardlib/blob/master/openquake/hazardlib/geo/point.py>`))
+                object.
+
+        Returns:
             A Vector object.
         """
         x, y, z = latlon2ecef(
@@ -54,10 +53,11 @@ class Vector(object):
         """
         Class method which allows user to create a Vector from an x/y/z tuple.
 
-        :param a:
-            an x/y/z tuple.
-        :returns:
-            a Vector object.
+        Args:
+            a: an x/y/z tuple.
+
+        Returns:
+            A Vector object.
         """
         x, y, z = a
         return Vector(x, y, z)
@@ -66,12 +66,14 @@ class Vector(object):
         """
         Add another Vector object to this one (x+x,y+y,z+z).
 
-        :param other:
-            Another Vector object
-        :returns:
+        Args:
+            other: Another Vector object
+
+        Returns:
             A third Vector object.
-        :raises TypeError:
-            If other is not a Vector object.
+
+        Raises:
+            TypeError: If other is not a Vector object.
         """
         if not isinstance(other, Vector):
             raise TypeError("Cannot add Vector and %s objects" % type(other))
@@ -81,12 +83,14 @@ class Vector(object):
         """
         Subtract another Vector object from this one (x+x,y+y,z+z).
 
-        :param other:
-            Another Vector object.
-        :returns:
+        Args:
+            other: Another Vector object.
+
+        Returns:
             A third Vector object.
-        :raises TypeError:
-            If other is not a Vector object.
+
+        Raises:
+            TypeError: If other is not a Vector object.
         """
         if not isinstance(other, Vector):
             raise TypeError(
@@ -98,12 +102,14 @@ class Vector(object):
         """
         Multiply the Vector by a scalar, changing it's length.
 
-        :param length:
-            A scalar number.
-        :returns:
+        Args:
+            length: A scalar number.
+
+        Returns:
             A Vector object.
-        :raises TypeError:
-            when length is not a number.
+
+        Raises:
+            TypeError: when length is not a number.
         """
         try:
             length = float(length)
@@ -117,12 +123,14 @@ class Vector(object):
         """
         Multiply the Vector by a scalar, changing it's length.
 
-        :param length:
-            A scalar number.
-        :returns:
+        Args:
+            length: A scalar number.
+
+        Returns:
             A Vector object.
-        :raises TypeError:
-            When length is not a number.
+
+        Raises:
+            TypeError: When length is not a number.
         """
         try:
             length = float(length)
@@ -136,12 +144,14 @@ class Vector(object):
         """
         Check equality between this Vector and another.
 
-        :param other:
-            Another Vector object.
-        :returns:
+        Args:
+            other: Another Vector object.
+
+        Returns:
             True or False.
-        :raises TypeError:
-            If other is not a Vector object.
+
+        Raises:
+            TypeError: If other is not a Vector object.
         """
         if not isinstance(other, Vector):
             raise TypeError(
@@ -155,12 +165,14 @@ class Vector(object):
         """
         Calculate distance between this Vector and another.
 
-        :param other:
-            Another Vector object.
-        :returns:
+        Args:
+            other: Another Vector object.
+
+        Returns:
             float distance between Vectors.
-        :raises TypeError:
-            If other is not a Vector object.
+
+        Raises:
+            TypeError: If other is not a Vector object.
         """
         if not isinstance(other, Vector):
             raise TypeError(
@@ -173,17 +185,19 @@ class Vector(object):
         """
         Calculate cross product between this Vector and another.
 
-        :param other:
-            Another Vector object.
-        :returns:
+        Args:
+            other: Another Vector object.
+
+        Returns:
             a Vector object.
-        :raises TypeError:
-            If other is not a Vector object.
+
+        Raises:
+            TypeError: If other is not a Vector object.
         """
         if not isinstance(other, Vector):
             raise TypeError(
-                "Cannot calculate cross product between Vector and %s objects" %
-                type(other))
+                "Cannot calculate cross product between Vector and %s objects"
+                % type(other))
         cp = np.cross(self.getArray(), other.getArray())
         return Vector(cp[0], cp[1], cp[2])
 
@@ -191,37 +205,39 @@ class Vector(object):
         """
         Calculate dot product between this Vector and another.
 
-        :param other:
-           Another Vector object.
-        :returns:
+        Args:
+            other: Another Vector object.
+
+        Returns:
            a float dot product.
-        :raises TypeError:
-            If other is not a Vector object.
+
+        Raises:
+            TypeError: If other is not a Vector object.
         """
         if not isinstance(other, Vector):
             raise TypeError(
-                "Cannot calculate cross product between Vector and %s objects" %
-                type(other))
+                "Cannot calculate cross product between Vector and %s objects"
+                % type(other))
         dp = np.dot(self.getArray(), other.getArray())
         return dp
 
     def getArray(self):
         """
-        :returns:
+        Returns:
             3 element Numpy array of [x,y,z]
         """
         return np.array((self.x, self.y, self.z))
 
     def getTuple(self):
         """
-        :returns:
+        Returns:
             3 element tuple of (x,y,z)
         """
         return (self.x, self.y, self.z)
 
     def norm(self):
         """
-        :returns:
+        Returns:
             Normalized Vector.
         """
         length = np.sqrt(self.x**2 + self.y**2 + self.z**2)
@@ -232,7 +248,7 @@ class Vector(object):
 
     def mag(self):
         """
-        :returns:
+        Returns:
             Length of Vector (float).
         """
         length = np.sqrt(self.x**2 + self.y**2 + self.z**2)
@@ -240,11 +256,11 @@ class Vector(object):
 
     def toPoint(self):
         """
-        Convert the Vector to a hazardlib Point object, after translating 
+        Convert the Vector to a hazardlib Point object, after translating
         back to lat, lon, depth.
 
-        :returns:
-            An Openquake 
+        Returns:
+            An Openquake
             `Point <https://github.com/gem/oq-hazardlib/blob/master/openquake/hazardlib/geo/point.py>`__.
         """
         lat, lon, dep = ecef2latlon(self.x, self.y, self.z)

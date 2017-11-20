@@ -19,14 +19,14 @@ def ecef2latlon(x, y, z):
     Convert Earth-Centered-Earth-Fixed (ECEF) cartesian coordinates
     to lat,lon,depth.
 
-    :parameter x:
-        A numpy array (or scalar value) of x coordinates (meters).
-    :parameter y:
-        A numpy array (or scalar value) of y coordinates (meters).
-    :parameter z:
-        A numpy array (or scalar value) of y coordinates (meters), positive UP.
-    :return:
-        Tuple of lat,lon,depth numpy arrays, where lat,lon are in dd and depth 
+    Args:
+        x: A numpy array (or scalar value) of x coordinates (meters).
+        y: A numpy array (or scalar value) of y coordinates (meters).
+        z: A numpy array (or scalar value) of y coordinates (meters),
+            positive UP.
+
+    Return:
+        Tuple of lat,lon,depth numpy arrays, where lat,lon are in dd and depth
         is in km and positive DOWN.
     """
     inputIsScalar = False
@@ -75,16 +75,17 @@ def ecef2latlon(x, y, z):
 
 def latlon2ecef(lat, lon, dep):
     """
-    Convert lat,lon,depth to Earth-Centered-Earth-Fixed (ECEF) 
+    Convert lat,lon,depth to Earth-Centered-Earth-Fixed (ECEF)
     cartesian coordinates.
 
-    :parameter lat:
-        A numpy array (or scalar value) of latitude values (decimal degrees).
-    :parameter lon:
-        A numpy array (or scalar value) of longitude values (decimal degrees).
-    :parameter dep:
-        A numpy array (or scalar value) of depths (km), positive DOWN.
-    :return:
+    Args:
+        lat: A numpy array (or scalar value) of latitude values (decimal
+            degrees).
+        lon: A numpy array (or scalar value) of longitude values (decimal
+            degrees).
+        dep: A numpy array (or scalar value) of depths (km), positive DOWN.
+
+    Return:
         Tuple of x,y,z numpy arrays of ECEF coordinates.
     """
     alt = -dep * 1000.0  # convert to altitude (positive UP) in meters

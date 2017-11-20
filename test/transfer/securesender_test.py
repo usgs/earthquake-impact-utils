@@ -21,10 +21,12 @@ def _testKey(remotehost, remotefolder, privatekey):
     securesend = SecureSender(properties=props, local_files=[thisfile])
     securesend.send()
 
-    homedir = os.path.dirname(os.path.abspath(__file__)) #where is this script?
+    homedir = os.path.dirname(os.path.abspath(
+        __file__))  # where is this script?
     securesend = SecureSender(properties=props, local_directory=homedir)
     securesend.send()
     securesend.cancel(cancel_content='This is a cancel message')
+
 
 if __name__ == '__main__':
     remotehost = sys.argv[1]

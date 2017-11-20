@@ -1,15 +1,19 @@
 # earthquake-impact-utils
 
-This project contains functionality that is common to at least three projects:
+## Introduction
+
+This project contains functionality that is common to at least
+six related repositories:
 
  - ShakeMap: https://github.com/usgs/shakemap
  - PAGER: https://github.com/usgs/pager
  - groundfailure: https://github.com/usgs/groundfailure
+ - ShakeMap scenarios: https://github.com/usgs/shakemap-scenarios
+ - ps2ff: https://github.com/usgs/ps2ff
+ - shakelib: https://github.com/usgs/shakelib
 
-Dependencies:
----------------
- - matplotlib http://matplotlib.org/
- - numpy http://www.numpy.org/
- - pandas http://pandas.pydata.org/
+## Installation
 
-Developers of any of the three projects listed above should already have these dependencies installed.
+The install.sh script installs this package and all dependencies.
+It is regularly tested on OSX and Ubuntu.
+
