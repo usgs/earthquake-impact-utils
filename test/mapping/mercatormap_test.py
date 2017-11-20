@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-
 # stdlib imports
 import os.path
 import sys
 
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 from impactutils.mapping.city import Cities
 from impactutils.mapping.mercatormap import MercatorMap
@@ -19,12 +18,10 @@ mapiodir = os.path.abspath(os.path.join(homedir, '..', '..'))
 sys.path.insert(0, mapiodir)
 
 
-matplotlib.use('Agg')
-
-
 def test(outfile=None, bounds=None):
     if bounds is None:
-        bounds = xmin, ymin, xmax, ymax = -121.046000, -116.046000, 32.143500, 36.278500
+        bounds = xmin, ymin, xmax, ymax = \
+            -121.046000, -116.046000, 32.143500, 36.278500
     else:
         xmin, ymin, xmax, ymax = bounds
     figsize = (7, 7)
@@ -35,12 +32,11 @@ def test(outfile=None, bounds=None):
 
     fig.canvas.draw()
 
-    ax.coastlines(resolution="10m", zorder=10)
+#    ax.coastlines(resolution="10m", zorder=10)
     plt.show()
     mmap.drawCities(shadow=True)
-    if outfile:
+    if outfile is not None:
         plt.savefig(outfile)
-        print('Figure saved to %s' % outfile)
     return
 
 
@@ -54,4 +50,4 @@ if __name__ == '__main__':
     else:
         bounds = None
     outfile = os.path.join(os.path.expanduser('~'), 'mercatormap.pdf')
-    test(outfile, bounds=None)
+    test(outfile = None, bounds=None)
