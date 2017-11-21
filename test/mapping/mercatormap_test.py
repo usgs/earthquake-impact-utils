@@ -37,7 +37,7 @@ def test_mmap(outfile=None, bounds=None):
 
 #    ax.coastlines(resolution="10m", zorder=10)
 #    plt.show()
-    mmap.drawCities(shadow=True)
+#    mmap.drawCities(shadow=True)
 #    if outfile:
 #        plt.savefig(outfile)
 #        print('Figure saved to %s' % outfile)
