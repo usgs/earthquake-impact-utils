@@ -7,10 +7,11 @@ def get_command_output(cmd):
     """
     Method for calling external system command.
 
-    :param cmd: 
-        String command (e.g., 'ls -l', etc.). 
-    :returns: 
-        Three-element tuple containing a boolean indicating success or failure, 
+    Args:
+        cmd: String command (e.g., 'ls -l', etc.).
+
+    Returns:
+        Three-element tuple containing a boolean indicating success or failure,
         the stdout from running the command, and stderr.
     """
     proc = subprocess.Popen(cmd,

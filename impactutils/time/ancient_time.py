@@ -51,6 +51,7 @@ class HistoricTime(datetime):
                                        100)  # last two digits are the same
         return result
 
+
 if __name__ == "__main__":
     t1 = HistoricTime(1900, 1, 1, 1, 1, 1)
     print(t1.strftime('%Y-%m-%d %H:%M:%S'))

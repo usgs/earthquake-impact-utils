@@ -19,7 +19,7 @@ from Crypto.PublicKey import RSA
 
 # hack the path so that I can debug these functions if I need to
 homedir = os.path.dirname(os.path.abspath(__file__))  # where is this script?
-shakedir = os.path.abspath(os.path.join(homedir,'..', '..'))
+shakedir = os.path.abspath(os.path.join(homedir, '..', '..'))
 # put this at the front of the system path, ignoring any installed mapio stuff
 sys.path.insert(0, shakedir)
 
@@ -72,18 +72,19 @@ def _test_send(internalhub):
                  'code': 'ci2015abcd',
                  'eventsource': 'us',
                  'eventsourcecode': 'us1234abcd'}
-        optional_props = {'latitude':34.123,
-                          'longitude':-188.456,
-                          'depth':10.1,
-                          'eventtime':datetime.datetime.utcnow(),
-                          'magnitude':5.4}
-        product_props = {'maxmmi':5.4,
-                         'alert':'yellow'}
+        optional_props = {'latitude': 34.123,
+                          'longitude': -188.456,
+                          'depth': 10.1,
+                          'eventtime': datetime.datetime.utcnow(),
+                          'magnitude': 5.4}
+        product_props = {'maxmmi': 5.4,
+                         'alert': 'yellow'}
         props.update(optional_props)
         thisfile = os.path.abspath(__file__)
-        pdl = PDLSender(properties=props, local_files=[thisfile],product_properties=product_props)
+        pdl = PDLSender(properties=props, local_files=[
+                        thisfile], product_properties=product_props)
         print('Sending...')
-        nfiles,send_msg = pdl.send()
+        nfiles, send_msg = pdl.send()
         print(send_msg)
         print('Deleting...')
         delete_msg = pdl.delete()
@@ -94,6 +95,7 @@ def _test_send(internalhub):
         # remove temporary pdl folder with jarfile, config, and keyfile in it
         if tempdir is not None:
             shutil.rmtree(tempdir)
+
 
 if __name__ == '__main__':
     # this needs to be the hostname of a PDL server that does not require a
