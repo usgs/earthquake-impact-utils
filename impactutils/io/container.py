@@ -591,5 +591,5 @@ def _drop_item(hdfobj, name, pattern):
     group_name = '__%s_%s__' % (pattern, name)
     if group_name not in hdfobj:
         raise LookupError('%s %s not in %s'
-                          % (pattern, name, self.getFileName()))
+                          % (pattern, name, hdfobj.filename))
     del hdfobj[group_name]
