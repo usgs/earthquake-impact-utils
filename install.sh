@@ -15,19 +15,19 @@ fi
 conda update -q -y conda
 conda config --prepend channels conda-forge
 
-DEPARRAY=(numpy=1.11\
-          matplotlib=2.0.2\
-          h5py=2.7.0 \
+DEPARRAY=(numpy=1.13.3\
+          matplotlib=1.5.3\
+          h5py=2.7.1 \
           cartopy=0.15.1\
           decorator=4.1.2\
-          pandas=0.20.3\
-          fiona=1.7.8\
-          shapely=1.5.17 \
-          pytest=3.2.0 \
+          pandas=0.21.0 \
+          fiona=1.7.10 \
+          shapely=1.6.2 \
+          pytest=3.2.5 \
           pytest-cov=2.5.1 \
           pytest-mpl=0.7 \
           pycrypto=2.6.1 \
-          paramiko=2.1.2 \
+          paramiko=2.3.1 \
           beautifulsoup4=4.6.0)
 
 # Is the Travis flag set?
@@ -64,6 +64,11 @@ echo "Creating the $VENV virtual environment"
 echo "with the following dependencies:"
 echo ${DEPARRAY[*]}
 conda create --name $VENV -y python=$PYVER ${DEPARRAY[*]}
+
+if [ $? -ne 0 ]; then
+    echo "Failed to create conda environment.  Resolve any conflicts, then try again."
+    exit
+fi
 
 # Activate the new environment
 echo "Activating the $VENV virtual environment"
