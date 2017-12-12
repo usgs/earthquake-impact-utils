@@ -3,7 +3,7 @@
     "name": "impact-utils",
     "organization": "U.S. Geological Survey",
     "description": "Utilities to support USGS earthquake shaking and impacts software, such as ShakeMap, PAGER, and groundfailure.",
-    "version": "0.1",
+    "version": "0.7",
     "status": "pre-release",
 
     "permissions": {
