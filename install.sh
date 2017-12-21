@@ -59,12 +59,6 @@ fi
 echo "Activating the $VENV virtual environment"
 source activate $VENV
 
-# Install OpenQuake -- note that I have pulled this out of environment.yml
-# because the requirements are too narrow to work with our other dependencies,
-# but the openquake.hazardlib tests pass with this environment. We need to
-# remember to check this when we change the environemnt.yml file though.
-conda install -y --no-deps -c conda-forge openquake.engine
-
 # This package
 echo "Installing impact-utils..."
 pip install -e .
