@@ -93,7 +93,6 @@ dependencies:
 - olefile=0.44=py35_0
 - openblas=0.2.20=6
 - openjpeg=2.1.2=3
-- openquake.engine=2.8.0=py35_0
 - openssl=1.0.2n=0
 - owslib=0.15.0=py_0
 - pandas=0.21.1=py35_0
