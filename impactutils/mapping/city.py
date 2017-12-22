@@ -10,7 +10,7 @@ else:
 import io
 import os.path
 
-from openquake.hazardlib.geo.geodetic import geodetic_distance
+from impactutils.extern.openquake.geodetic import geodetic_distance
 import pandas as pd
 
 GEONAME_URL = 'http://download.geonames.org/export/dump/cities1000.zip'

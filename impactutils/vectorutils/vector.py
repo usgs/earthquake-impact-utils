@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import numpy as np
-from openquake.hazardlib.geo import point
+from .point import Point
 from .ecef import latlon2ecef, ecef2latlon
 
 
@@ -38,8 +38,7 @@ class Vector(object):
         Earth-Centered-Earth-Fixed (ECEF) cartesian coordinates.
 
         Args:
-            oqpoint: Openquake `Point <https://github.com/gem/oq-hazardlib/blob/master/openquake/hazardlib/geo/point.py>`))
-                object.
+            oqpoint: Point object.
 
         Returns:
             A Vector object.
@@ -256,15 +255,14 @@ class Vector(object):
 
     def toPoint(self):
         """
-        Convert the Vector to a hazardlib Point object, after translating
+        Convert the Vector to a Point object, after translating
         back to lat, lon, depth.
 
         Returns:
-            An Openquake
-            `Point <https://github.com/gem/oq-hazardlib/blob/master/openquake/hazardlib/geo/point.py>`__.
+            Point: A Point object.
         """
         lat, lon, dep = ecef2latlon(self.x, self.y, self.z)
-        return point.Point(lon, lat, dep)
+        return Point(lon, lat, dep)
 
     def __repr__(self):
         """
