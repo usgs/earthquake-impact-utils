@@ -8,7 +8,7 @@ import sys
 import numpy as np
 
 import impactutils.vectorutils.vector as vector
-from openquake.hazardlib.geo import point
+from impactutils.vectorutils import point
 
 homedir = os.path.dirname(os.path.abspath(__file__))  # where is this script?
 shakedir = os.path.abspath(os.path.join(homedir, '..', '..'))
