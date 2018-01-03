@@ -1,5 +1,6 @@
 # stdlib imports
 from urllib import request
+from urllib.error import HTTPError
 import json
 from datetime import datetime
 
