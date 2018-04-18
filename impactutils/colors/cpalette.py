@@ -313,6 +313,7 @@ class ColorPalette(object):
                 - '255' Return a 4 element tuple of (R,G,B,A) with integer
                   values betwen 0 and 255.
                 - 'hex' Return an HTML-style hex color specification (#RRGGBB).
+                - 'array' Return an RGBA array of the same 1 or 2D dimensions as value.
 
         Returns:
             The color value associated with the input data value.
@@ -327,6 +328,9 @@ class ColorPalette(object):
         elif color_format == '255':
             color255 = tuple([int(c * 255) for c in color])
             return color255
+        elif color_format == 'array':
+            rgba = np.uint8(color*255)
+            return rgba
         elif color_format == 'hex':
             color255 = [int(c * 255) for c in color]
             hexcolor = ('#%02x%02x%02x'

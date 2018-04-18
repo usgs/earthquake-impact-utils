@@ -4,6 +4,7 @@
 from datetime import datetime
 import collections
 import copy
+import json
 
 # third party imports
 import h5py
@@ -22,6 +23,12 @@ ALLOWED = [str, int, float, bool, bytes,
            collections.OrderedDict]
 
 TIMEFMT = '%Y-%m-%d %H:%M:%S.%f'
+
+GROUPS = {'dict': '__dictionaries__',
+          'list': '__lists__',
+          'string': '__strings__',
+          'array': '__arrays__',
+          'dataframe': '__dataframes__'}
 
 
 class HDFContainer(object):
@@ -91,13 +98,15 @@ class HDFContainer(object):
         Returns:
             dict: Dictionary that was stored in input named group.
         """
-        group_name = '__dictionary_%s__' % name
-        if group_name not in self._hdfobj:
+        dict_name = '__%s__' % name
+        dict_group = self._hdfobj[GROUPS['dict']]
+        if dict_name not in dict_group:
             raise LookupError('Dictionary %s not in %s'
                               % (name, self.getFileName()))
-        mgroup = self._hdfobj[group_name]
-        dict = _h5group2dict(mgroup)
-        return dict
+        mdataset = dict_group[dict_name]
+        outstring = mdataset.value.decode('utf-8')
+        outdict = json.loads(outstring)
+        return outdict
 
     def setDictionary(self, name, dictionary):
         """
@@ -116,11 +125,16 @@ class HDFContainer(object):
         Returns:
             Group: HDF5 Group object.
         """
-        indict = copy.deepcopy(dictionary)
-        group_name = '__dictionary_%s__' % name
-        mgroup = self._hdfobj.create_group(group_name)
-        _dict2h5group(indict, mgroup)
-        return mgroup
+        dict_name = '__%s__' % name
+        if GROUPS['dict'] not in self._hdfobj:
+            dict_group = self._hdfobj.create_group(GROUPS['dict'])
+        else:
+            dict_group = self._hdfobj[GROUPS['dict']]
+
+        inbytes = json.dumps(dictionary).encode('utf-8')
+        mdataset = dict_group.create_dataset(dict_name, data=inbytes)
+
+        return mdataset
 
     def dropDictionary(self, name):
         """
@@ -130,7 +144,12 @@ class HDFContainer(object):
             name (str): The name of the dictionary to be deleted.
 
         """
-        _drop_item(self._hdfobj, name, 'dictionary')
+        mdict = '__%s__' % name
+        dict_group = self._hdfobj[GROUPS['dict']]
+        if mdict not in dict_group:
+            raise LookupError('dictionary %s not in %s'
+                              % (name, self._hdfobj.filename))
+        del dict_group[mdict]
 
     def getDictionaries(self):
         """
@@ -139,8 +158,8 @@ class HDFContainer(object):
         Returns:
           (list) List of names of dictionaries stored in container.
         """
-
-        dictionaries = _get_type_list(self._hdfobj, 'dictionary')
+        dictionaries = list(self._hdfobj[GROUPS['dict']].keys())
+        dictionaries = [name.replace('__', '') for name in dictionaries]
         return dictionaries
 
     #
@@ -163,18 +182,16 @@ class HDFContainer(object):
         Returns:
             Group: HDF5 Group object.
         """
-        if isinstance(inlist[0], dict):
-            raise TypeError('lists with dictionaries are not supported.')
-        dtype = type(inlist[0])
-        for element in inlist[1:]:
-            if type(element) != dtype:
-                raise TypeError('Heterogeneous lists are not supported.')
+        list_name = '__%s__' % name
+        if GROUPS['list'] not in self._hdfobj:
+            list_group = self._hdfobj.create_group(GROUPS['list'])
+        else:
+            list_group = self._hdfobj[GROUPS['list']]
 
-        newlist = _encode_list(inlist[:])  # encode a copy of the list
-        group_name = '__list_%s__' % name
-        mgroup = self._hdfobj.create_group(group_name)
-        mgroup.attrs['list'] = _encode_list(newlist)
-        return mgroup
+        inbytes = json.dumps(inlist).encode('utf-8')
+        mdataset = list_group.create_dataset(list_name, data=inbytes)
+
+        return mdataset
 
     def getList(self, name):
         """Return a list stored in container.
@@ -185,11 +202,14 @@ class HDFContainer(object):
         Returns:
             list: List that was stored in input named group.
         """
-        group_name = '__list_%s__' % name
-        if group_name not in self._hdfobj:
-            raise LookupError('List %s not in %s' % (name, self.getFileName()))
-        mgroup = self._hdfobj[group_name]
-        outlist = _decode_list(mgroup.attrs['list'])
+        list_name = '__%s__' % name
+        list_group = self._hdfobj[GROUPS['list']]
+        if list_name not in list_group:
+            raise LookupError('List %s not in %s'
+                              % (name, self.getFileName()))
+        mdataset = list_group[list_name]
+        outstring = mdataset.value.decode('utf-8')
+        outlist = json.loads(outstring)
         return outlist
 
     def getLists(self):
@@ -199,7 +219,8 @@ class HDFContainer(object):
         Returns:
             list: List of names of lists stored in container.
         """
-        lists = _get_type_list(self._hdfobj, 'list')
+        lists = list(self._hdfobj[GROUPS['list']].keys())
+        lists = [name.replace('__', '') for name in lists]
         return lists
 
     def dropList(self, name):
@@ -210,7 +231,12 @@ class HDFContainer(object):
             name (str): The name of the list to be deleted.
 
         """
-        _drop_item(self._hdfobj, name, 'list')
+        mlist = '__%s__' % name
+        list_group = self._hdfobj[GROUPS['list']]
+        if mlist not in list_group:
+            raise LookupError('list %s not in %s'
+                              % (name, self._hdfobj.filename))
+        del list_group[mlist]
 
     #
     # Arrays
@@ -242,8 +268,14 @@ class HDFContainer(object):
             compression = 'gzip'
         else:
             compression = None
-        array_name = '__array_%s__' % name
-        dset = self._hdfobj.create_dataset(
+
+        array_name = '__%s__' % name
+        if GROUPS['array'] not in self._hdfobj:
+            array_group = self._hdfobj.create_group(GROUPS['array'])
+        else:
+            array_group = self._hdfobj[GROUPS['array']]
+
+        dset = array_group.create_dataset(
             array_name, data=array, compression=compression)
         if metadata:
             for key, value in metadata.items():
@@ -261,11 +293,12 @@ class HDFContainer(object):
             tuple: An array of data, and a dictionary of metadata.
         """
 
-        array_name = '__array_%s__' % name
-        if array_name not in self._hdfobj:
+        array_name = '__%s__' % name
+        array_group = self._hdfobj[GROUPS['array']]
+        if array_name not in array_group:
             raise LookupError('Array %s not in %s'
                               % (name, self.getFileName()))
-        dset = self._hdfobj[array_name]
+        dset = array_group[array_name]
         data = dset[()]
         metadata = {}
         for key, value in dset.attrs.items():
@@ -279,7 +312,8 @@ class HDFContainer(object):
         Returns:
             list: List of names of arrays stored in container.
         """
-        arrays = _get_type_list(self._hdfobj, 'array')
+        arrays = list(self._hdfobj[GROUPS['array']].keys())
+        arrays = [name.replace('__', '') for name in arrays]
         return arrays
 
     def dropArray(self, name):
@@ -290,7 +324,12 @@ class HDFContainer(object):
             name (str): The name of the array to be deleted.
 
         """
-        _drop_item(self._hdfobj, name, 'array')
+        marray = '__%s__' % name
+        array_group = self._hdfobj[GROUPS['array']]
+        if marray not in array_group:
+            raise LookupError('Array %s not in %s'
+                              % (name, self._hdfobj.filename))
+        del array_group[marray]
 
     #
     # Strings
@@ -310,12 +349,16 @@ class HDFContainer(object):
             Group: HDF5 Group object.
         """
 
-        # Create a special group to hold all of these strings as attributes.
-        group_name = '__string_%s__' % name
-        mgroup = self._hdfobj.create_group(group_name)
+        string_name = '__%s__' % name
+        if GROUPS['string'] not in self._hdfobj:
+            string_group = self._hdfobj.create_group(GROUPS['string'])
+        else:
+            string_group = self._hdfobj[GROUPS['string']]
 
-        mgroup.attrs['string'] = instring
-        return mgroup
+        inbytes = instring.encode('utf-8')
+        mdataset = string_group.create_dataset(string_name, data=inbytes)
+
+        return mdataset
 
     def getString(self, name):
         """
@@ -327,11 +370,13 @@ class HDFContainer(object):
         Returns:
             str: A Python string object.
         """
-        group_name = '__string_%s__' % name
-        if group_name not in self._hdfobj:
-            raise LookupError('String %s not in %s'
+        string_name = '__%s__' % name
+        string_group = self._hdfobj[GROUPS['string']]
+        if string_name not in string_group:
+            raise LookupError('Dictionary %s not in %s'
                               % (name, self.getFileName()))
-        outstring = self._hdfobj[group_name].attrs['string']
+        mdataset = string_group[string_name]
+        outstring = mdataset.value.decode('utf-8')
         return outstring
 
     def getStrings(self):
@@ -341,7 +386,8 @@ class HDFContainer(object):
         Returns:
           (list) List of names of strings stored in container.
         """
-        strings = _get_type_list(self._hdfobj, 'string')
+        strings = list(self._hdfobj[GROUPS['string']].keys())
+        strings = [name.replace('__', '') for name in strings]
         return strings
 
     def dropString(self, name):
@@ -352,7 +398,12 @@ class HDFContainer(object):
             name (str): The name of the string to be deleted.
 
         """
-        _drop_item(self._hdfobj, name, 'string')
+        mstring = '__%s__' % name
+        string_group = self._hdfobj[GROUPS['string']]
+        if mstring not in string_group:
+            raise LookupError('string %s not in %s'
+                              % (name, self._hdfobj.filename))
+        del string_group[mstring]
 
     #
     # Dataframes
@@ -369,15 +420,20 @@ class HDFContainer(object):
         Returns:
             Group: HDF5 Group object.
         """
-        framedict = dataframe.to_dict('list')
-        for cname, column in framedict.items():
-            if isinstance(column[0], pd.Timestamp):
-                column = [c.to_pydatetime() for c in column]
-                framedict[cname] = column
-        group_name = '__dataframe_%s__' % name
-        mgroup = self._hdfobj.create_group(group_name)
-        _dict2h5group(framedict, mgroup)
-        return mgroup
+        dataframe_name = '__%s__' % name
+        if GROUPS['dataframe'] not in self._hdfobj:
+            dataframe_group = self._hdfobj.create_group(GROUPS['dataframe'])
+        else:
+            dataframe_group = self._hdfobj[GROUPS['dataframe']]
+
+        inbytes = dataframe.to_json(date_format='iso').encode('utf-8')
+        mdataset = dataframe_group.create_dataset(dataframe_name, data=inbytes)
+        # use attributes to store time columns?
+        cidx = dataframe.select_dtypes(include=['datetime64[ns]']).columns
+        clist = cidx.tolist()
+        cstr = json.dumps(clist)
+        mdataset.attrs['time_columns'] = cstr.encode('utf-8')
+        return mdataset
 
     def getDataFrame(self, name):
         """Return a DataFrame stored in container.
@@ -389,20 +445,21 @@ class HDFContainer(object):
         Returns:
             dict: DataFrame that was stored in input named group.
         """
-        group_name = '__dataframe_%s__' % name
-        if group_name not in self._hdfobj:
-            raise LookupError('DataFrame %s not in %s'
+        dataframe_name = '__%s__' % name
+        dataframe_group = self._hdfobj[GROUPS['dataframe']]
+        if dataframe_name not in dataframe_group:
+            raise LookupError('Dataframe %s not in %s'
                               % (name, self.getFileName()))
-        mgroup = self._hdfobj[group_name]
-        datadict = _h5group2dict(mgroup)
-        for key, value in datadict.items():
-            try:
-                HistoricTime.strptime(value[0], TIMEFMT)
-                value = [HistoricTime.strptime(v, TIMEFMT) for v in value]
-                datadict[key] = value
-            except:
-                pass
-        dataframe = pd.DataFrame(datadict)
+        mdataset = dataframe_group[dataframe_name]
+        outstring = mdataset.value.decode('utf-8')
+
+        # in setDataFrame, we stored the names of the
+        # date/time columns in an attribute.  Let's use that
+        # now to make sure those are read back in with the appropriate
+        # type
+        clist = json.loads(mdataset.attrs['time_columns'].decode('utf-8'))
+        dataframe = pd.read_json(outstring, convert_dates=clist)
+
         return dataframe
 
     def getDataFrames(self):
@@ -412,7 +469,8 @@ class HDFContainer(object):
         Returns:
             list: List of names of dictionaries stored in container.
         """
-        dataframes = _get_type_list(self._hdfobj, 'dataframe')
+        dataframes = list(self._hdfobj[GROUPS['dataframe']].keys())
+        dataframes = [name.replace('__', '') for name in dataframes]
         return dataframes
 
     def dropDataFrame(self, name):
@@ -423,173 +481,13 @@ class HDFContainer(object):
             name (str): The name of the dataframe to be deleted.
 
         """
-        _drop_item(self._hdfobj, name, 'dataframe')
+        mdataframe = '__%s__' % name
+        dataframe_group = self._hdfobj[GROUPS['dataframe']]
+        if mdataframe not in dataframe_group:
+            raise LookupError('dataframe %s not in %s'
+                              % (name, self._hdfobj.filename))
+        del dataframe_group[mdataframe]
 
     #
     # Dataframes
     #
-
-
-def _h5group2dict(group):
-    """
-    Recursively create dictionaries from groups in an HDF file.
-
-    Args:
-        group: HDF5 group object.
-
-    Returns:
-        dict: Dictionary of metadata (possibly containing other dictionaries).
-    """
-    tdict = {}
-    for (key, value) in group.attrs.items():  # attrs are NOT subgroups
-
-        if isinstance(value, bytes):
-            value = value.decode('utf8')
-            try:
-                value = HistoricTime.strptime(value, TIMEFMT)
-            except ValueError:
-                pass
-        elif isinstance(value, str):
-            try:
-                value = HistoricTime.strptime(value, TIMEFMT)
-            except ValueError:
-                pass
-        tdict[key] = value
-
-    for (key, value) in group.items():  # these are going to be the subgroups
-        tdict[key] = _h5group2dict(value)
-    return _convert(tdict)
-
-
-def _dict2h5group(mydict, group):
-    """
-    Recursively save dictionaries into groups in an HDF group..
-
-    Args:
-        mydict (dict):
-            Dictionary of values to save in group or dataset.  Dictionary
-            can contain objects of the following types: str, unicode, int,
-            float, long, list, tuple, np. ndarray, dict,
-            datetime.datetime, collections.OrderedDict
-        group:
-            HDF group or dataset in which to storedictionary of data.
-
-    Returns
-        nothing
-    """
-    for (key, value) in mydict.items():
-        tvalue = type(value)
-        if tvalue not in ALLOWED:
-            if tvalue.__bases__[0] not in ALLOWED:
-                raise TypeError('Unsupported metadata value type "%s"'
-                                % tvalue)
-        if isinstance(value, dict):
-            subgroup = group.create_group(key)
-            _dict2h5group(value, subgroup)
-            continue
-        elif isinstance(value, datetime):
-            # convert datetime to a string, as there is no good
-            # floating point format for datetimes before 1970.
-            value = value.strftime(TIMEFMT)
-        elif isinstance(value, list):
-            value = _encode_list(value)
-        elif isinstance(value, str):
-            value = value.encode('utf8')
-        else:
-            pass
-        group.attrs[key] = value
-
-
-def _encode_list(value):
-    for i, val in enumerate(value):
-        if isinstance(val, list):
-            value[i] = _encode_list(val)
-        elif isinstance(val, datetime):
-            value[i] = val.strftime('%Y-%m-%d %H:%M:%S.%f').encode('utf8')
-        elif isinstance(val, str):
-            value[i] = val.encode('utf8')
-        elif isinstance(val, dict):
-            raise TypeError('Lists cannot contain dictionaries.')
-        else:
-            value[i] = val
-    return value
-
-
-def _decode_list(value):
-    outlist = []
-    for i, val in enumerate(value):
-        if isinstance(val, list):
-            outlist.append(_decode_list(val))
-        elif isinstance(val, bytes):
-            tval = val.decode('utf8')
-            try:
-                outlist.append(HistoricTime.strptime(tval, TIMEFMT))
-            except ValueError:
-                outlist.append(tval)
-        elif isinstance(val, dict):
-            raise TypeError('Lists cannot contain dictionaries.')
-        else:
-            outlist.append(val)
-    return outlist
-
-
-def _convert(data):
-    """
-    Recursively convert the bytes elements in a dictionary's values, lists,
-    and tuples into ascii.
-
-    Args:
-        data (dict): A dictionary.
-
-    Returns;
-        A copy of the dictionary with the byte strings converted to ascii.
-    """
-    if isinstance(data, bytes):
-        return data.decode('utf8')
-    if isinstance(data, dict):
-        return dict(map(_convert, data.items()))
-    if isinstance(data, tuple):
-        return tuple(map(_convert, data))
-    if type(data) in (np.ndarray, list):
-        return list(map(_convert, data))
-    return data
-
-
-def _get_type_list(hdfobj, pattern):
-    """
-    Return the list of groups or datasets from hdf object matching a given
-    pattern.
-
-    Args:
-        hdfobj: h5py File object.
-        pattern (str): String to search. Examples could include "dictionary",
-            "string","array", etc.
-
-    Returns:
-        list: List of un-mangled data set or group names.
-
-    """
-    names = []
-    for group_name in hdfobj.keys():
-        if group_name.startswith('__%s' % pattern):
-            dname = group_name.replace('__%s_' % pattern, '').replace('__', '')
-            names.append(dname)
-    return names
-
-
-def _drop_item(hdfobj, name, pattern):
-    """
-    Drop a group or dataset from the HDF object.
-
-    Args:
-        hdfobj: h5py File object.
-        name: Un-mangled name of group or dataset to delete.
-        pattern: The type of group or dataset to be deleted ("dictionary",
-            "string","array", etc.)
-    """
-
-    group_name = '__%s_%s__' % (pattern, name)
-    if group_name not in hdfobj:
-        raise LookupError('%s %s not in %s'
-                          % (pattern, name, hdfobj.filename))
-    del hdfobj[group_name]
