@@ -1,11 +1,18 @@
 #!/usr/bin/env python
 
-from impactutils.io.container import HDFContainer
-import numpy as np
-import pandas as pd
+
 from datetime import datetime
 import tempfile
+import string
 import os.path
+import random
+
+import numpy as np
+import pandas as pd
+
+from impactutils.io.container import HDFContainer
+
+TIMEFMT = '%Y-%d-%m %H:%M:%S.%f'
 
 
 def test_hdf_dictonaries():
@@ -17,10 +24,19 @@ def test_hdf_dictonaries():
         # test simple dictionary
         print('Test simple dictionary...')
         indict1 = {'name': 'Fred', 'age': 34,
-                   'dob': datetime(1950, 1, 1, 23, 43, 12)}
+                   'dob': datetime(1950, 1, 1, 23, 43, 12).strftime(TIMEFMT)}
         container.setDictionary('person', indict1)
         outdict = container.getDictionary('person')
         assert outdict == indict1
+
+        # this should fail because we can't serialize datetimes to json.
+        try:
+            indict1 = {'name': 'Fred', 'age': 34,
+                       'dob': datetime(1950, 1, 1, 23, 43, 12)}
+            container.setDictionary('person', indict1)
+        except TypeError as te:
+            print('Expected failure: %s' % str(te))
+            assert 1 == 1
 
         # test more complicated dictionary
         print('Test complex dictionary...')
@@ -65,28 +81,13 @@ def test_hdf_lists():
         container.setList('test_list2', inlist)
         assert container.getList('test_list2') == inlist
 
-        # test setting a list of datetimes
-        inlist = [datetime(1900, 1, 1), datetime.utcnow()]
-        container.setList('test_list3', inlist)
-        assert container.getList('test_list3') == inlist
-
         # test getlists
         assert sorted(container.getLists()) == [
-            'test_list1', 'test_list2', 'test_list3']
+            'test_list1', 'test_list2']
 
-        # test setting a heterogeneous list (should fail)
-        inlist = ['one', 2, 'three']
-        try:
-            container.setList('test_list4', inlist)
-        except TypeError:
-            assert 1 == 1
-
-        # test setting a list with dictionaries in it (should fail)
+        # test setting a list with dictionaries in it
         inlist = [{'a': 1}, {'b': 2}]
-        try:
-            container.setList('test_list5', inlist)
-        except TypeError:
-            assert 1 == 1
+        container.setList('test_list3', inlist)
 
         # drop a list
         container.dropList('test_list1')
@@ -178,10 +179,19 @@ def test_hdf_strings():
         container.dropString('test_string1')
         assert container.getStrings() == ['test_string2']
 
+        # test a really big string
+        sets = string.ascii_uppercase + string.digits + string.ascii_lowercase
+        num_chars = 1000000
+        print('Making a really big string...')
+        big_string = ''.join(random.choice(sets) for _ in range(num_chars))
+        container.setString('big', big_string)
+        big_string2 = container.getString('big')
+        assert big_string == big_string2
+
         # close container, re-open
         container.close()
         container2 = HDFContainer.load(testfile)
-        assert container2.getStrings() == ['test_string2']
+        assert container2.getStrings() == ['big', 'test_string2']
 
     except Exception:
         assert 1 == 2
