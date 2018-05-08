@@ -158,6 +158,8 @@ class HDFContainer(object):
         Returns:
           (list) List of names of dictionaries stored in container.
         """
+        if GROUPS['dict'] not in self._hdfobj:
+            return []
         dictionaries = list(self._hdfobj[GROUPS['dict']].keys())
         dictionaries = [name.replace('__', '') for name in dictionaries]
         return dictionaries
@@ -219,6 +221,8 @@ class HDFContainer(object):
         Returns:
             list: List of names of lists stored in container.
         """
+        if GROUPS['list'] not in self._hdfobj:
+            return []
         lists = list(self._hdfobj[GROUPS['list']].keys())
         lists = [name.replace('__', '') for name in lists]
         return lists
@@ -312,6 +316,8 @@ class HDFContainer(object):
         Returns:
             list: List of names of arrays stored in container.
         """
+        if GROUPS['array'] not in self._hdfobj:
+            return []
         arrays = list(self._hdfobj[GROUPS['array']].keys())
         arrays = [name.replace('__', '') for name in arrays]
         return arrays
@@ -386,6 +392,8 @@ class HDFContainer(object):
         Returns:
           (list) List of names of strings stored in container.
         """
+        if GROUPS['string'] not in self._hdfobj:
+            return []
         strings = list(self._hdfobj[GROUPS['string']].keys())
         strings = [name.replace('__', '') for name in strings]
         return strings
@@ -469,6 +477,8 @@ class HDFContainer(object):
         Returns:
             list: List of names of dictionaries stored in container.
         """
+        if GROUPS['dataframe'] not in self._hdfobj:
+            return []
         dataframes = list(self._hdfobj[GROUPS['dataframe']].keys())
         dataframes = [name.replace('__', '') for name in dataframes]
         return dataframes

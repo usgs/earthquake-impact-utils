@@ -21,6 +21,14 @@ def test_hdf_dictonaries():
     try:
         container = HDFContainer.create(testfile)
 
+        # before we put anything in here, let's make sure we get empty lists from
+        # all of the methods that are supposed to return lists of stuff.
+        assert container.getDictionaries() == []
+        assert container.getLists() == []
+        assert container.getArrays() == []
+        assert container.getStrings() == []
+        assert container.getDataFrames() == []
+        
         # test simple dictionary
         print('Test simple dictionary...')
         indict1 = {'name': 'Fred', 'age': 34,

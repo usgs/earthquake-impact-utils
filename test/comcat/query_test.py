@@ -48,6 +48,7 @@ def test_cc():
                 'nc72592670': ['us200050nt', 'nn00531804']}
 
     for eventid, cmp_allids in eventids.items():
+        print(eventid)
         ccinfo = ComCatInfo(eventid)
         authid, allids = ccinfo.getAssociatedIds()
         authsource, othersources = ccinfo.getAssociatedSources()
@@ -60,6 +61,7 @@ def test_cc():
                     'at00o30yrz': 'ci37528064',
                     'us200050nt': 'nc72592670'}
     for eventid, cmp_authid in non_auth_ids.items():
+        print(eventid)
         ccinfo = ComCatInfo(eventid)
         authid, allids = ccinfo.getAssociatedIds()
         assert cmp_authid == authid
@@ -111,4 +113,4 @@ def test_cc():
 
 if __name__ == '__main__':
     test_cc()
-    test_geoserve()
+    geoserve()
