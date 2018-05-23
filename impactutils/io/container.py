@@ -24,11 +24,11 @@ ALLOWED = [str, int, float, bool, bytes,
 
 TIMEFMT = '%Y-%m-%d %H:%M:%S.%f'
 
-GROUPS = {'dict': '__dictionaries__',
-          'list': '__lists__',
-          'string': '__strings__',
-          'array': '__arrays__',
-          'dataframe': '__dataframes__'}
+GROUPS = {'dict': 'dictionaries',
+          'list': 'lists',
+          'string': 'strings',
+          'array': 'arrays',
+          'dataframe': 'dataframes'}
 
 
 class HDFContainer(object):
@@ -98,7 +98,7 @@ class HDFContainer(object):
         Returns:
             dict: Dictionary that was stored in input named group.
         """
-        dict_name = '__%s__' % name
+        dict_name = '%s' % name
         dict_group = self._hdfobj[GROUPS['dict']]
         if dict_name not in dict_group:
             raise LookupError('Dictionary %s not in %s'
@@ -125,7 +125,7 @@ class HDFContainer(object):
         Returns:
             Group: HDF5 Group object.
         """
-        dict_name = '__%s__' % name
+        dict_name = '%s' % name
         if GROUPS['dict'] not in self._hdfobj:
             dict_group = self._hdfobj.create_group(GROUPS['dict'])
         else:
@@ -144,7 +144,7 @@ class HDFContainer(object):
             name (str): The name of the dictionary to be deleted.
 
         """
-        mdict = '__%s__' % name
+        mdict = '%s' % name
         dict_group = self._hdfobj[GROUPS['dict']]
         if mdict not in dict_group:
             raise LookupError('dictionary %s not in %s'
@@ -161,7 +161,6 @@ class HDFContainer(object):
         if GROUPS['dict'] not in self._hdfobj:
             return []
         dictionaries = list(self._hdfobj[GROUPS['dict']].keys())
-        dictionaries = [name.replace('__', '') for name in dictionaries]
         return dictionaries
 
     #
@@ -184,7 +183,7 @@ class HDFContainer(object):
         Returns:
             Group: HDF5 Group object.
         """
-        list_name = '__%s__' % name
+        list_name = '%s' % name
         if GROUPS['list'] not in self._hdfobj:
             list_group = self._hdfobj.create_group(GROUPS['list'])
         else:
@@ -204,7 +203,7 @@ class HDFContainer(object):
         Returns:
             list: List that was stored in input named group.
         """
-        list_name = '__%s__' % name
+        list_name = '%s' % name
         list_group = self._hdfobj[GROUPS['list']]
         if list_name not in list_group:
             raise LookupError('List %s not in %s'
@@ -224,7 +223,6 @@ class HDFContainer(object):
         if GROUPS['list'] not in self._hdfobj:
             return []
         lists = list(self._hdfobj[GROUPS['list']].keys())
-        lists = [name.replace('__', '') for name in lists]
         return lists
 
     def dropList(self, name):
@@ -235,7 +233,7 @@ class HDFContainer(object):
             name (str): The name of the list to be deleted.
 
         """
-        mlist = '__%s__' % name
+        mlist = '%s' % name
         list_group = self._hdfobj[GROUPS['list']]
         if mlist not in list_group:
             raise LookupError('list %s not in %s'
@@ -273,7 +271,7 @@ class HDFContainer(object):
         else:
             compression = None
 
-        array_name = '__%s__' % name
+        array_name = '%s' % name
         if GROUPS['array'] not in self._hdfobj:
             array_group = self._hdfobj.create_group(GROUPS['array'])
         else:
@@ -297,7 +295,7 @@ class HDFContainer(object):
             tuple: An array of data, and a dictionary of metadata.
         """
 
-        array_name = '__%s__' % name
+        array_name = '%s' % name
         array_group = self._hdfobj[GROUPS['array']]
         if array_name not in array_group:
             raise LookupError('Array %s not in %s'
@@ -319,7 +317,6 @@ class HDFContainer(object):
         if GROUPS['array'] not in self._hdfobj:
             return []
         arrays = list(self._hdfobj[GROUPS['array']].keys())
-        arrays = [name.replace('__', '') for name in arrays]
         return arrays
 
     def dropArray(self, name):
@@ -330,7 +327,7 @@ class HDFContainer(object):
             name (str): The name of the array to be deleted.
 
         """
-        marray = '__%s__' % name
+        marray = '%s' % name
         array_group = self._hdfobj[GROUPS['array']]
         if marray not in array_group:
             raise LookupError('Array %s not in %s'
@@ -355,7 +352,7 @@ class HDFContainer(object):
             Group: HDF5 Group object.
         """
 
-        string_name = '__%s__' % name
+        string_name = '%s' % name
         if GROUPS['string'] not in self._hdfobj:
             string_group = self._hdfobj.create_group(GROUPS['string'])
         else:
@@ -376,7 +373,7 @@ class HDFContainer(object):
         Returns:
             str: A Python string object.
         """
-        string_name = '__%s__' % name
+        string_name = '%s' % name
         string_group = self._hdfobj[GROUPS['string']]
         if string_name not in string_group:
             raise LookupError('Dictionary %s not in %s'
@@ -395,7 +392,6 @@ class HDFContainer(object):
         if GROUPS['string'] not in self._hdfobj:
             return []
         strings = list(self._hdfobj[GROUPS['string']].keys())
-        strings = [name.replace('__', '') for name in strings]
         return strings
 
     def dropString(self, name):
@@ -406,7 +402,7 @@ class HDFContainer(object):
             name (str): The name of the string to be deleted.
 
         """
-        mstring = '__%s__' % name
+        mstring = '%s' % name
         string_group = self._hdfobj[GROUPS['string']]
         if mstring not in string_group:
             raise LookupError('string %s not in %s'
@@ -428,7 +424,7 @@ class HDFContainer(object):
         Returns:
             Group: HDF5 Group object.
         """
-        dataframe_name = '__%s__' % name
+        dataframe_name = '%s' % name
         if GROUPS['dataframe'] not in self._hdfobj:
             dataframe_group = self._hdfobj.create_group(GROUPS['dataframe'])
         else:
@@ -453,7 +449,7 @@ class HDFContainer(object):
         Returns:
             dict: DataFrame that was stored in input named group.
         """
-        dataframe_name = '__%s__' % name
+        dataframe_name = '%s' % name
         dataframe_group = self._hdfobj[GROUPS['dataframe']]
         if dataframe_name not in dataframe_group:
             raise LookupError('Dataframe %s not in %s'
@@ -480,7 +476,6 @@ class HDFContainer(object):
         if GROUPS['dataframe'] not in self._hdfobj:
             return []
         dataframes = list(self._hdfobj[GROUPS['dataframe']].keys())
-        dataframes = [name.replace('__', '') for name in dataframes]
         return dataframes
 
     def dropDataFrame(self, name):
@@ -491,7 +486,7 @@ class HDFContainer(object):
             name (str): The name of the dataframe to be deleted.
 
         """
-        mdataframe = '__%s__' % name
+        mdataframe = '%s' % name
         dataframe_group = self._hdfobj[GROUPS['dataframe']]
         if mdataframe not in dataframe_group:
             raise LookupError('dataframe %s not in %s'
