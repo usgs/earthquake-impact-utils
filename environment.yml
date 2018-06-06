@@ -2,8 +2,6 @@ name: impact
 channels:
 - conda-forge
 - defaults
-- digitalglobe
-- ioos
 dependencies:
 - beautifulsoup4
 - cartopy
@@ -12,7 +10,7 @@ dependencies:
 - h5py
 - ipython
 - jupyter
-- matplotlib<2.0
+- matplotlib
 - numpy
 - pandas
 - paramiko
