@@ -164,7 +164,9 @@ class MercatorMap(object):
         """
         return self._fontlist
 
-    def drawCities(self, fontname='DejaVu Sans', fontsize=10.0, shadow=False,
+    def drawCities(self, fontname='DejaVu Sans',
+                   fontsize=10.0, shadow=False,
+                   draw_dots=False,
                    zorder=10):
         """Render cities on map axes (obtainable through the axes property).
 
@@ -173,6 +175,8 @@ class MercatorMap(object):
             fontsize: Desired font size for city labels.
             shadow: Boolean indicating whether drop-shadow effect should be
                 applied.
+            draw_dots: Boolean indicating whether city locations should
+                be marked with a black dot.
             zorder: Desired plotting z-order for city labels and dots.
 
         Returns:
@@ -195,8 +199,9 @@ class MercatorMap(object):
         # draw on
         plt.sca(self._ax)
         for idx, row in self._cities._dataframe.iterrows():
-            self._ax.plot(row['lon'], row['lat'], 'k.',
-                          transform=self._geoproj)
+            if draw_dots:
+                self._ax.plot(row['lon'], row['lat'], 'k.',
+                              transform=self._geoproj, zorder=zorder)
             th = self.renderRow(row, fontname, fontsize, shadow, zorder,
                                 test=False)
 
