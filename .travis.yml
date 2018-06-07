@@ -5,8 +5,8 @@ python:
 install:
     # Install impactutils and requirements
     - bash install.sh -t
-    - export PATH="$HOME/miniconda/bin:$PATH"
-    - source activate impact
+    - . $HOME/miniconda/etc/profile.d/conda.sh
+    - conda activate impact
 before_script:
     # This is to take care of Invalid DISPLAY variable
     - "export DISPLAY=:99.0"
