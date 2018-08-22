@@ -1,9 +1,6 @@
 # local imports
 from .city import Cities
 
-import matplotlib
-matplotlib.use('Agg')
-
 # third party imports
 import matplotlib.font_manager as fm
 import matplotlib.patheffects as path_effects
@@ -12,11 +9,15 @@ import numpy as np
 import pyproj
 import cartopy.crs as ccrs
 
+import matplotlib
+matplotlib.use('Agg')
+
 XOFFSET = 4  # how many pixels between the city dot and the city text
 
 
 class MercatorMap(object):
-    def __init__(self, bounds, figsize, cities, padding=0.25):
+    def __init__(self, bounds, figsize, cities, padding=0.25,
+                 dimensions=[0, 0, 1, 1]):
         """
         Create an instance of MercatorMap, container class for Cartopy GeoAxes
         and city labeling.
@@ -61,6 +62,7 @@ class MercatorMap(object):
                 value of 0.25 means that each city's bounding box be padded by
                 25% of the width or height on each side (left, right, top,
                 bottom).
+
         """
         self._cities = cities.limitByBounds(bounds)
         xmin, xmax, ymin, ymax = bounds
@@ -73,7 +75,7 @@ class MercatorMap(object):
 
         # set up an axes object
         self._figure = plt.figure(figsize=figsize)
-        self._ax = self._figure.add_axes([0, 0, 1, 1], projection=self._proj)
+        self._ax = self._figure.add_axes(dimensions, projection=self._proj)
         self._ax.set_extent([xmin, xmax, ymin, ymax], crs=self._geoproj)
 
         # set up an identical axes object - this will be used to determine city
