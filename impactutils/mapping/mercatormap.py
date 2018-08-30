@@ -67,16 +67,29 @@ class MercatorMap(object):
         self._cities = cities.limitByBounds(bounds)
         xmin, xmax, ymin, ymax = bounds
         clon = (xmin + xmax) / 2
+        if xmax < 0 and xmax < xmin:
+            clon = (xmin + (xmax+360))/2
+
+        clat = (ymin + ymax) / 2
         self._proj = ccrs.Mercator(central_longitude=clon,
                                    min_latitude=ymin,
                                    max_latitude=ymax,
                                    globe=None)
+        # self._proj = ccrs.AzimuthalEquidistant(central_longitude=clon,
+        #                                        central_latitude=clat,
+        #                                        globe=None)
         self._geoproj = ccrs.PlateCarree()
 
         # set up an axes object
         self._figure = plt.figure(figsize=figsize)
         self._ax = self._figure.add_axes(dimensions, projection=self._proj)
-        self._ax.set_extent([xmin, xmax, ymin, ymax], crs=self._geoproj)
+        try:
+            self._ax.set_extent([xmin, xmax, ymin, ymax], crs=self._geoproj)
+        except:
+            pproj = pyproj.Proj(self._proj.proj4_init)
+            ulx, uly = pproj(xmin, ymax)
+            lrx, lry = pproj(xmax, ymin)
+            self._ax.set_extent([ulx, lrx, lry, uly], crs=self._proj)
 
         # set up an identical axes object - this will be used to determine city
         # label collisions.
