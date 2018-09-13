@@ -761,7 +761,7 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
            'imts' not in self._hdfobj['arrays']:
             return []
         if imt_name is None:
-            return self._hdfobj['arrays']['imts'].keys()
+            return list(self._hdfobj['arrays']['imts'].keys())
         else:
             components = []
             for component in self.getComponents():
