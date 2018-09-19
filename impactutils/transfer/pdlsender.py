@@ -140,7 +140,8 @@ class PDLSender(Sender):
                     '--property-%s=%s'
                     % (propkey, propvalue.strftime(DATE_TIME_FMT)[0:23]))
             elif isinstance(propvalue, str):
-                prop_nuggets.append('--property-%s="%s"' % (propkey, propvalue))
+                prop_nuggets.append('--property-%s="%s"' %
+                                    (propkey, propvalue))
             else:
                 prop_nuggets.append('--property-%s=%s' %
                                     (propkey, str(propvalue)))
@@ -152,7 +153,7 @@ class PDLSender(Sender):
             if propkey in self._properties:
                 if propkey == 'eventtime':
                     opt_nuggets.append(
-                        '--%s=%s'
+                        '--%s=%sZ'
                         % (propkey,
                            self._properties[propkey].strftime(DATE_TIME_FMT)[0:23]))
                 else:
