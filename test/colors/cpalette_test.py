@@ -1,34 +1,27 @@
 #!/usr/bin/env python
 
 # stdlib imports
-import urllib.request as request
 import tempfile
 import os.path
-import sys
 import shutil
-
-# hack the path so that I can debug these functions if I need to
-homedir = os.path.dirname(os.path.abspath(__file__))  # where is this script?
-impactdir = os.path.abspath(os.path.join(homedir, '..', '..'))
-# put this at the front of the system path, ignoring any installed impact stuff
-sys.path.insert(0, impactdir)
 
 # third party imports
 import numpy as np
+import matplotlib.pyplot as plt
 
 # local imports
-from impactutils.colors import cpalette
+from impactutils.colors.cpalette import ColorPalette
 
 TEST_FILE = """#This file is a test file for ColorPalette.
-#Lines beginning with pound signs are comments.
-#Lines beginning with pound signs followed by a "$" are variable definition lines.
-#For example, the following line defines a variable called nan_color.
+# Lines beginning with pound signs are comments.
+# Lines beginning with pound signs followed by a "$" are variable definition lines.
+# For example, the following line defines a variable called nan_color.
 #$nan_color: 0,0,0,0
 #$name: test
 Z0 R0  G0  B0  Z1  R1  G1  B1
 0   0   0   0   1  85  85  85
 1  85  85  85   2 170 170 170
-2 170 170 170   3 255 255 255 
+2 170 170 170   3 255 255 255
 """
 
 TEST_DICT = {'red': [(0.0, -0.999, 0.0),
@@ -55,7 +48,7 @@ def test_simplemap():
             (170, 170, 170),
             (255, 255, 255)]
     nan_color = (0, 0, 0, 0)
-    cp = cpalette.ColorPalette('test', z0, z1, rgb0, rgb1, nan_color=nan_color)
+    cp = ColorPalette('test', z0, z1, rgb0, rgb1, nan_color=nan_color)
     assert cp.getDataColor(0.5) == (0.16470588235294117,
                                     0.16470588235294117, 0.16470588235294117, 1.0)
     cp.vmin = -1.0
@@ -68,11 +61,11 @@ def test_simplemap():
 
 
 def test_presets():
-    palettes = cpalette.ColorPalette.getPresets()
+    palettes = ColorPalette.getPresets()
     palettes.sort()
     assert palettes == ['mmi', 'pop', 'shaketopo']
 
-    pop = cpalette.ColorPalette.fromPreset('pop')
+    pop = ColorPalette.fromPreset('pop')
     values = [(0, 1.0),
               (5, 0.749),
               (50, 0.623),
@@ -89,7 +82,7 @@ def test_presets():
     assert pop.vmin == 0
     assert pop.vmax == 50000
 
-    mmi = cpalette.ColorPalette.fromPreset('mmi')
+    mmi = ColorPalette.fromPreset('mmi')
     values = [(0.5, 1.0),
               (1.5, 0.874)]
     for value in values:
@@ -100,9 +93,40 @@ def test_presets():
     assert mmi.vmin == 0
     assert mmi.vmax == 10
 
-    topo = cpalette.ColorPalette.fromPreset('shaketopo')
+    topo = ColorPalette.fromPreset('shaketopo')
     assert topo.vmin == -100
     assert topo.vmax == 9200
+
+
+def test_colormap():
+    viridis = plt.get_cmap('viridis')
+    cmap = ColorPalette.fromColorMap('viridis',
+                                     np.arange(0, 10),
+                                     np.arange(1, 11),
+                                     viridis)
+    zero_value = np.array([0.26666666666666666,
+                           0.00392156862745098,
+                           0.32941176470588235,
+                           1.0])
+    ten_value = np.array([0.9921568627450981,
+                          0.9058823529411765,
+                          0.1450980392156863,
+                          1.0])
+    np.testing.assert_almost_equal(cmap.getDataColor(0), zero_value)
+    np.testing.assert_almost_equal(cmap.getDataColor(10), ten_value)
+
+    viridis = plt.get_cmap('viridis')
+    cmap = ColorPalette.fromColorMap('viridis',
+                                     np.arange(-4, 5),
+                                     np.arange(-3, 6),
+                                     viridis,
+                                     is_log=True)
+    dcolor = cmap.getDataColor(np.exp(-4.0))
+    tcolor = np.array((0.26666666666666666,
+                       0.00392156862745098,
+                       0.32941176470588235,
+                       1.0))
+    np.testing.assert_almost_equal(dcolor, tcolor)
 
 
 def test_file():
@@ -112,7 +136,7 @@ def test_file():
         f = open(tfile, 'wt')
         f.write(TEST_FILE)
         f.close()
-        cp = cpalette.ColorPalette.fromFile(tfile)
+        cp = ColorPalette.fromFile(tfile)
         assert cp._cdict == TEST_DICT
     except:
         pass
@@ -125,3 +149,4 @@ if __name__ == '__main__':
     test_presets()
     test_simplemap()
     test_file()
+    test_colormap()
