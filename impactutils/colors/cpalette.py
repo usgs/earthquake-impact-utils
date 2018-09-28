@@ -84,7 +84,7 @@ DEFAULT_NCOLORS = 256
 
 
 class ColorPalette(object):
-    def __init__(self, name, z0, z1, rgb0, rgb1, resolution=None, nan_color=0):
+    def __init__(self, name, z0, z1, rgb0, rgb1, resolution=None, nan_color=0, is_log=False):
         """Construct a DataColorMap from input Z values and RGB specs.
 
         Args:
@@ -106,11 +106,13 @@ class ColorPalette(object):
         if len(z0) != len(z1) != len(rgb0) != len(rgb1):
             raise Exception('Lengths of input sequences to ColorPalette() '
                             'must be identical.')
-
+        self._is_log = is_log
         z0 = np.array(z0)
         z1 = np.array(z1)
         self._vmin = z0.min()
         self._vmax = z1.max()
+        if isinstance(nan_color, int):
+            nan_color = [nan_color]*4
         self.nan_color = np.array(nan_color) / 255.0
 
         # Change the z values to be between 0 and 1
@@ -255,6 +257,43 @@ class ColorPalette(object):
         return cls(name=name, z0=df.Z0, z1=df.Z1, rgb0=rgb0, rgb1=rgb1,
                    nan_color=nan_color, resolution=resolution)
 
+    @classmethod
+    def fromColorMap(cls, name, z0, z1, cmap, resolution=None, nan_color=0, is_log=False):
+        """Construct a ColorPalette from ranges of Z values and a Matplotlib Colormap.
+
+        Args:
+            name (str): Name of Colormap.
+            z0 (sequence): Sequence of z0 values.
+            z1 (sequence): Sequence of z1 values.
+            cmap (Colormap): Matplotlib Colormap object.
+            resolution (float): Desired Resolution of the data values in data units.
+                For example, the preset population color map has a resolution
+                of 1.0, meaning that we want to be able to distinguish between
+                color values associated with a difference of 1 person. This
+                sets the number of colors to be:
+                    `max(256,int((max(z1)-min(z0))/resolution))`
+            nan_color (0 or 4 sequence): Either 0 or RGBA quadruplet (A is for Alpha, where 0 is
+                transparent, and 255 is opaque.)
+        """
+        # use the whole dynamic range of the colormap
+        if len(z0) != len(z1):
+            raise Exception('Lengths of input sequences to '
+                            'ColorPalette.fromColorMap() must be identical.')
+        zmin = np.min(z0)
+        zmax = np.max(z1)
+        rgb0 = []
+        rgb1 = []
+        for zbottom, ztop in zip(z0, z1):
+            znorm0 = (zbottom-zmin)/(zmax-zmin)
+            rgb_bottom = np.round(np.array(cmap(znorm0)[0:3])*255)
+            rgb0.append(rgb_bottom.tolist())
+
+            znorm1 = (ztop-zmin)/(zmax-zmin)
+            rgb_top = np.round(np.array(cmap(znorm1)[0:3])*255)
+            rgb1.append(rgb_top.tolist())
+
+        return cls(name, z0, z1, rgb0, rgb1, resolution=resolution, nan_color=nan_color, is_log=is_log)
+
     @property
     def vmin(self):
         """Property accessor for vmin.
@@ -321,6 +360,8 @@ class ColorPalette(object):
         Raises:
             AttributeError when color_format is not recognized.
         """
+        if self._is_log:
+            value = np.log(value)
         normvalue = (value - self.vmin) / (self.vmax - self.vmin)
         color = self.cmap(normvalue)
         if color_format == 'mlab':
