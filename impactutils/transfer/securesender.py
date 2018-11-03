@@ -87,8 +87,8 @@ class SecureSender(Sender):
                 allfiles = self.getAllLocalFiles()
                 for filename in allfiles:
                     self._copy_file_with_path(
-                            scp, ssh, filename, remote_folder,
-                            local_folder=self._local_directory)
+                        scp, ssh, filename, remote_folder,
+                        local_folder=self._local_directory)
 
         except Exception as obj:
             rhost = self._properties['remote_host']
@@ -154,7 +154,7 @@ class SecureSender(Sender):
                         compress=True)
         except Exception as obj:
             raise Exception('Could not connect with private key file %s' %
-                            self._properties['privatekey'])
+                            self._properties['private_key'])
         return ssh
 
     def _copy_file_with_path(self, scp, ssh, local_file, remote_folder,
