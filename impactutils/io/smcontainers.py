@@ -118,7 +118,7 @@ class HDFContainerBase(object):
             raise LookupError('Dictionary %s not in %s'
                               % (name, self.getFileName()))
         mdataset = dict_group[name]
-        outstring = mdataset.value.decode('utf-8')
+        outstring = mdataset[()].decode('utf-8')
         outdict = json.loads(outstring)
         return outdict
 
@@ -302,7 +302,7 @@ class HDFContainerBase(object):
             raise LookupError('Dictionary %s not in %s'
                               % (name, self.getFileName()))
         mdataset = string_group[name]
-        outstring = mdataset.value.decode('utf-8')
+        outstring = mdataset[()].decode('utf-8')
         return outstring
 
     def getStrings(self):
