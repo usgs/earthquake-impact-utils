@@ -68,7 +68,7 @@ class MercatorMap(object):
         xmin, xmax, ymin, ymax = bounds
         clon = (xmin + xmax) / 2
         if xmax < 0 and xmax < xmin:
-            clon = (xmin + (xmax+360))/2
+            clon = (xmin + (xmax + 360)) / 2
 
         clat = (ymin + ymax) / 2
         self._proj = ccrs.Mercator(central_longitude=clon,
@@ -347,7 +347,7 @@ class MercatorMap(object):
             box.
         """
         th = self.renderRow(row, fontname, fontsize, shadow, zorder, test=True)
-        bbox = th.get_window_extent(self._figure.canvas.renderer)
+        bbox = th.get_window_extent(self._figure.canvas.get_renderer())
         axbox = bbox.inverse_transformed(self._ax_clone.transData)
         left, bottom, right, top = axbox.extents
         xpad = (right - left) * self._padding
