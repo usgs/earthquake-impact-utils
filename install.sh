@@ -24,17 +24,6 @@ echo $PATH
 
 VENV=impact
 
-# Is the reset flag set?
-reset=0
-while getopts r FLAG; do
-  case $FLAG in
-    r)
-        reset=1
-        
-      ;;
-  esac
-done
-
 
 # create a matplotlibrc file with the non-interactive backend "Agg" in it.
 if [ ! -d "$matplotlibdir" ]; then
