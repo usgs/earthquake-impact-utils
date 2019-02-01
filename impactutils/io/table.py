@@ -11,8 +11,8 @@ from openpyxl import load_workbook, utils
 
 REQUIRED_COLUMNS = ['STATION', 'LAT', 'LON', 'NETID']
 CHANNEL_GROUPS = [['[A-Z]{2}E', '[A-Z]{2}N', '[A-Z]{2}Z'],
+                  ['[A-Z]{2}1', '[A-Z]{2}2', '[A-Z]{2}Z'],
                   ['H1', 'H2', 'Z'],
-                  ['HN1', 'HN2', 'HNZ'],
                   ['UNK']]
 PGM_COLS = ['PGA', 'PGV', 'SA(0.3)', 'SA(1.0)', 'SA(3.0)']
 OPTIONAL = ['NAME', 'DISTANCE', 'REFERENCE',
@@ -128,7 +128,9 @@ def read_excel(excelfile):
     # read in dataframe, assuming that ground motions are grouped by channel
     if is_multi:
         try:
-            df = pd.read_excel(excelfile, header=header)
+            # note - in versions of pandas prior to 0.24, index_col=None
+            # has no effect here.  Hence the unsetting of the index later.
+            df = pd.read_excel(excelfile, header=header, index_col=None)
             # if the name column is all blanks, it's filled with NaNs by
             # default, which causes problems later on.  Replace with
             # empty strings
@@ -141,12 +143,13 @@ def read_excel(excelfile):
         df.columns = pd.MultiIndex.from_arrays([headers, subheaders])
         top_headers = df.columns.levels[0]
     else:
-        df = pd.read_excel(excelfile, skiprows=skip_rows)
+        df = pd.read_excel(excelfile, skiprows=skip_rows, index_col=None)
         top_headers = df.columns
 
     # make sure basic columns are present
     if 'STATION' not in top_headers:
         df['STATION'] = df.index
+        df = df.reset_index(drop=True)
         top_headers = df.columns.levels[0]
     if not set(REQUIRED_COLUMNS).issubset(set(top_headers)):
         fmt = 'Input Excel file must specify the following columns: %s.'
@@ -356,7 +359,7 @@ def _translate_imt(oldimt):
         match = re.search(r'\d+', oldimt)
         if match is not None:
             period = float(match.group())
-            newimt = 'SA(%.1f)' % (period/10)
+            newimt = 'SA(%.1f)' % (period / 10)
         else:
             newimt = ''
     return newimt

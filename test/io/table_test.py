@@ -64,7 +64,7 @@ def test_read_tables():
 
         missing_data_file = os.path.join(datadir, 'missing_rows.xlsx')
         df, _ = read_excel(missing_data_file)
-        assert np.isnan(df['H1']['SA(0.3)']['CHPA'])
+        assert np.isnan(df['H1']['SA(0.3)'].iloc[3])
         xmlfile = os.path.join(tmpdir, 'missing_rows.xml')
         dataframe_to_xml(df, xmlfile)
 
