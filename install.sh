@@ -93,6 +93,7 @@ package_list=(
     "jupyter"
     "matplotlib"
     "numpy"
+    "openpyxl"
     "pandas"
     "paramiko"
     "pycrypto"
@@ -101,6 +102,7 @@ package_list=(
     "pytest-mpl"
     "python>=3.6"
     "shapely"
+    "xlrd"
 )
 
 # Start in conda base environment
