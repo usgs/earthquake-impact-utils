@@ -104,7 +104,7 @@ class HDFContainer(object):
             raise LookupError('Dictionary %s not in %s'
                               % (name, self.getFileName()))
         mdataset = dict_group[dict_name]
-        outstring = mdataset.value.decode('utf-8')
+        outstring = mdataset[()].decode('utf-8')
         outdict = json.loads(outstring)
         return outdict
 
@@ -209,7 +209,7 @@ class HDFContainer(object):
             raise LookupError('List %s not in %s'
                               % (name, self.getFileName()))
         mdataset = list_group[list_name]
-        outstring = mdataset.value.decode('utf-8')
+        outstring = mdataset[()].decode('utf-8')
         outlist = json.loads(outstring)
         return outlist
 
@@ -379,7 +379,7 @@ class HDFContainer(object):
             raise LookupError('Dictionary %s not in %s'
                               % (name, self.getFileName()))
         mdataset = string_group[string_name]
-        outstring = mdataset.value.decode('utf-8')
+        outstring = mdataset[()].decode('utf-8')
         return outstring
 
     def getStrings(self):
@@ -455,7 +455,7 @@ class HDFContainer(object):
             raise LookupError('Dataframe %s not in %s'
                               % (name, self.getFileName()))
         mdataset = dataframe_group[dataframe_name]
-        outstring = mdataset.value.decode('utf-8')
+        outstring = mdataset[()].decode('utf-8')
 
         # in setDataFrame, we stored the names of the
         # date/time columns in an attribute.  Let's use that

@@ -33,7 +33,7 @@ def _move(cellstr, nrows, ncols):
     """
     # WARNING! This will only work up to column Z!
     # colidx is a string, rowidx is a number
-    col_str_idx, rowidx = utils.coordinate_from_string(cellstr)
+    col_str_idx, rowidx = utils.cell.coordinate_from_string(cellstr)
     letters = string.ascii_uppercase
     try:
         colidx = letters.index(col_str_idx)

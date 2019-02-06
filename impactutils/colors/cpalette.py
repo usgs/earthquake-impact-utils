@@ -112,7 +112,7 @@ class ColorPalette(object):
         self._vmin = z0.min()
         self._vmax = z1.max()
         if isinstance(nan_color, int):
-            nan_color = [nan_color]*4
+            nan_color = [nan_color] * 4
         self.nan_color = np.array(nan_color) / 255.0
 
         # Change the z values to be between 0 and 1
@@ -251,7 +251,7 @@ class ColorPalette(object):
                 parts = tline[2:].split(':')
                 resolution = float(parts[1].strip())
         f.close()
-        df = pd.read_table(filename, comment='#', sep='\s+', header=0)
+        df = pd.read_csv(filename, comment='#', sep=r'\s+', header=0)
         rgb0 = list(zip(df.R0, df.G0, df.B0))
         rgb1 = list(zip(df.R1, df.G1, df.B1))
         return cls(name=name, z0=df.Z0, z1=df.Z1, rgb0=rgb0, rgb1=rgb1,
@@ -284,12 +284,12 @@ class ColorPalette(object):
         rgb0 = []
         rgb1 = []
         for zbottom, ztop in zip(z0, z1):
-            znorm0 = (zbottom-zmin)/(zmax-zmin)
-            rgb_bottom = np.round(np.array(cmap(znorm0)[0:3])*255)
+            znorm0 = (zbottom - zmin) / (zmax - zmin)
+            rgb_bottom = np.round(np.array(cmap(znorm0)[0:3]) * 255)
             rgb0.append(rgb_bottom.tolist())
 
-            znorm1 = (ztop-zmin)/(zmax-zmin)
-            rgb_top = np.round(np.array(cmap(znorm1)[0:3])*255)
+            znorm1 = (ztop - zmin) / (zmax - zmin)
+            rgb_top = np.round(np.array(cmap(znorm1)[0:3]) * 255)
             rgb1.append(rgb_top.tolist())
 
         return cls(name, z0, z1, rgb0, rgb1, resolution=resolution, nan_color=nan_color, is_log=is_log)
@@ -370,7 +370,7 @@ class ColorPalette(object):
             color255 = tuple([int(c * 255) for c in color])
             return color255
         elif color_format == 'array':
-            rgba = np.uint8(color*255)
+            rgba = np.uint8(color * 255)
             return rgba
         elif color_format == 'hex':
             color255 = [int(c * 255) for c in color]
