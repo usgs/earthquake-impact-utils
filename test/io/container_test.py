@@ -28,7 +28,7 @@ def test_hdf_dictonaries():
         assert container.getArrays() == []
         assert container.getStrings() == []
         assert container.getDataFrames() == []
-        
+
         # test simple dictionary
         print('Test simple dictionary...')
         indict1 = {'name': 'Fred', 'age': 34,
