@@ -7,12 +7,6 @@ import os.path
 import sys
 from datetime import datetime
 
-# hack the path so that I can debug these functions if I need to
-homedir = os.path.dirname(os.path.abspath(__file__))  # where is this script?
-impactdir = os.path.abspath(os.path.join(homedir, '..', '..'))
-# put this at the front of the system path, ignoring any installed impact stuff
-sys.path.insert(0, impactdir)
-
 # third party imports
 import numpy as np
 
@@ -20,25 +14,33 @@ import numpy as np
 from impactutils.comcat.query import ComCatInfo, GeoServe
 
 
-def geoserve():
-    positions = [{'name': 'california', 'coords': (37.28935, -119.53125), 'source': 'NC', 'type': 'anss'},
+def test_geoserve():
+    positions = [{'name': 'california', 'coords': (37.28935, -119.53125), 'source': 'NC', 'type': 'anss', 
+    'place':'Oakhurst', 'region':'Central California'},
                  {'name': 'alaska', 'coords': (
-                     63.379217, -151.699219), 'source': 'AK', 'type': 'anss'},
+                     63.379217, -151.699219), 'source': 'AK', 'type': 'anss', 'place':'Healy', 'region':'Central Alaska'},
                  {'name': 'aleutians', 'coords': (
-                     53.209322, -167.34375), 'source': 'US', 'type': 'NA'},
-                 {'name': 'japan', 'coords': (36.700907, 138.999023), 'source': 'US', 'type': 'NA'}]
+                     53.209322, -167.34375), 'source': 'US', 'type': 'NA', 'place':'Unalaska', 'region':'Fox Islands, Aleutian Islands, Alaska'},
+                 {'name': 'japan', 'coords': (36.700907, 138.999023), 'source': 'US', 'type': 'NA', 'place':'Numata', 'region':'eastern Honshu, Japan'}]
 
-    gs = GeoServe(0, 0)
+
     for pdict in positions:
         lat, lon = pdict['coords']
         psource = pdict['source']
         ptype = pdict['type']
         pname = pdict['name']
+        place = pdict['place']
+        region = pdict['region']
         print('Testing %s authoritative region...' % pname)
-        gs.updatePosition(lat, lon)
+        gs = GeoServe(lat, lon)
         authsrc, authtype = gs.getAuthoritative()
         assert authsrc == psource
         assert authtype == ptype
+        places = gs.getPlaces()
+        regdict = gs.getRegions()
+        assert places[0]['properties']['name'] == place
+        assert regdict['fe']['features'][0]['properties']['name'] == region
+    x = 1
 
 
 def test_cc():
@@ -112,5 +114,6 @@ def test_cc():
 
 
 if __name__ == '__main__':
+    test_geoserve()
     test_cc()
-    geoserve()
+    
