@@ -187,7 +187,7 @@ def read_excel(excelfile):
     found = False
     if 'INTENSITY' in top_headers:
         found = True
-    empty_cell = re.compile('\s+')
+    empty_cell = re.compile(r'\s+')
     for channel in channels:
         channel_df = df[channel].copy()
         for column in PGM_COLS:

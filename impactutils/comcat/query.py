@@ -5,7 +5,9 @@ import json
 from datetime import datetime
 
 URL_TEMPLATE = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/[EVENTID].geojson'  # noqa
-GEOSERVE_URL = 'http://earthquake.usgs.gov/ws/geoserve/regions.json?latitude=[LAT]&longitude=[LON]'  # noqa
+REGIONS_URL = 'http://earthquake.usgs.gov/ws/geoserve/regions.json?latitude=[LAT]&longitude=[LON]'  # noqa
+PLACES_URL = ('http://earthquake.usgs.gov/ws/geoserve/places.json?'
+              'latitude=[LAT]&longitude=[LON]&maxradiuskm=[RADIUS]&minpopulation=[POP]&type=geonames')  # noqa
 
 TIMEOUT = 15
 WAITSECS = 3
@@ -35,33 +37,62 @@ class GeoServe(object):
 
     """
 
-    def __init__(self, lat, lon):
+    def __init__(self, lat, lon, maxradius=500, minpop=1000):
         """
         Initialize object with data from web service for a given
         latitude/longitude coordinate.
 
         Args:
-            lat: Desired latitude.
-            lon: Desired longitude.
+            lat (float): Desired latitude.
+            lon (float): Desired longitude.
+            maxradius (float):  Search radius (in kilometers) from the center point.
+            minpop (int): Limit results to places where population is greater than or equal to minpop.
 
         Raises:
             Exception if the GeoServe URL cannot be reached after two attempts,
             and a suitable timeout period.
         """
-        url = GEOSERVE_URL.replace('[LAT]', str(lat))
-        url = url.replace('[LON]', str(lon))
-        self._jdict = self._getJSONContent(url)
+        regurl = REGIONS_URL.replace('[LAT]', str(lat))
+        regurl = regurl.replace('[LON]', str(lon))
+        placeurl = PLACES_URL.replace('[LAT]',str(lat))
+        placeurl = placeurl.replace('[LON]',str(lon))
+        placeurl = placeurl.replace('[RADIUS]', str(maxradius))
+        placeurl = placeurl.replace('[POP]', str(minpop))
+        self._placedict = self._getJSONContent(placeurl)
+        self._regdict = self._getJSONContent(regurl)
 
-    def updatePosition(self, lat, lon):
-        """Update internal data for a given latitude/longitude coordinate.
+    def getPlaces(self):
+        """Get a list of geojson-like features describing nearest populated places.
 
-        Args:
-            lat: Desired latitude.
-            lon: Desired longitude.
+        Returns:
+            list: List of dictionaries, with fields:
+                  - type: "Feature"
+                  - id: Database ID
+                  - geometry: Dictionary with fields:
+                    - coordinates: List of longitude, latitude, elevation.
+                  - properties: Dictionary with fields:
+                    - admin1_code: "State" level code (i.e., "CO" in the US)
+                    - admin1_name: "State" level name, (i.e., "Colorado" in the US)
+                    - azimuth: Direction from input latitude/longitude to this location.
+                    - country_code: Two letter country code of location ("US").
+                    - country_name: Full country name ("United States").
+                    - distance: Distance in km from input lat/lon to this location.
+                    - feature_class: See http://www.geonames.org/export/codes.html.
+                    - feature_code: See http://www.geonames.org/export/codes.html.
+                    - name: Unicode name of location (i.e., "Golden").
+                    - population: Population of location.
         """
-        url = GEOSERVE_URL.replace('[LAT]', str(lat))
-        url = url.replace('[LON]', str(lon))
-        self._jdict = self._getJSONContent(url)
+        return self._placedict['geonames']['features']
+
+    def getRegions(self):
+        """Get a dictionary of region information about input latitude/longitude.
+
+        Returns:
+            dict: geojson-like dictionaries, described here: https://earthquake.usgs.gov/ws/geoserve/regions.php
+                  The 'metadata' dictionary is omitted.
+        """
+        self._regdict.pop('metadata', None)
+        return self._regdict
 
     def getAuthoritative(self):
         """Return the authoritative region network code and type.
@@ -74,12 +105,12 @@ class GeoServe(object):
         """
         auth_source = 'US'
         auth_type = 'NA'
-        if len(self._jdict['authoritative']['features']):
-            auth_source = self._jdict['authoritative']['features'][0]['properties']['network']
+        if len(self._regdict['authoritative']['features']):
+            auth_source = self._regdict['authoritative']['features'][0]['properties']['network']
             # We seem to have all the worlds networks in geoserve, not just
             # ANSS.  A type of 'anss' indicates that this region is an ANSS
             # one.
-            auth_type = self._jdict['authoritative']['features'][0]['properties']['type']
+            auth_type = self._regdict['authoritative']['features'][0]['properties']['type']
         return (auth_source, auth_type)
 
     def _getJSONContent(self, url):
