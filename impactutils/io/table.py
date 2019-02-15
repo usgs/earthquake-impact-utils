@@ -134,7 +134,8 @@ def read_excel(excelfile):
             # if the name column is all blanks, it's filled with NaNs by
             # default, which causes problems later on.  Replace with
             # empty strings
-            df['NAME'] = df['NAME'].fillna('')
+            if 'NAME' in df.columns:
+                df['NAME'] = df['NAME'].fillna('')
         except pd.errors.ParserError:
             raise IndexError('Input file has invalid empty first data row.')
 
