@@ -3,15 +3,15 @@ import numpy as np
 import zipfile
 import tempfile
 import sys
-if sys.version_info.major == 3:
-    import urllib.request as request
-else:
-    import urllib2 as request
 import io
 import os.path
 
 from impactutils.extern.openquake.geodetic import geodetic_distance
 import pandas as pd
+if sys.version_info.major == 3:
+    import urllib.request as request
+else:
+    import urllib2 as request
 
 GEONAME_URL = 'http://download.geonames.org/export/dump/cities1000.zip'
 
@@ -127,7 +127,7 @@ class Cities(object):
                   'lon': [],
                   'iscap': [],
                   'pop': []}
-        f = open(cityfile, 'rt')
+        f = open(cityfile, 'rt', encoding='latin-1')
         for line in f.readlines():
             parts = line.split('\t')
             tname = parts[2].strip()
@@ -172,7 +172,7 @@ class Cities(object):
         Returns:
             Number of cities contained in this object.
         """
-        return len(df)
+        return len(self._dataframe)
 
     def save(self, filename):
         """Save City internal dataframe to CSV file.
@@ -199,7 +199,7 @@ class Cities(object):
         Raises:
             KeyError: When column(s) are not in the list of dataframe columns.
         """
-        if column not in self._dataframe.columns:
+        if 'column' not in self._dataframe.columns:
             raise KeyError('Column not in list of DataFrame columns')
         if pd.__version__ < '0.17.0':
             self._dataframe = self._dataframe.sort(columns=columns,
