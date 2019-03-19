@@ -199,8 +199,10 @@ class Cities(object):
         Raises:
             KeyError: When column(s) are not in the list of dataframe columns.
         """
-        if 'column' not in self._dataframe.columns:
-            raise KeyError('Column not in list of DataFrame columns')
+        bad_columns = set(columns).difference(set(self._dataframe.columns()))
+        if bad_columns:
+            raise KeyError('Column(s) not in list of DataFrame columns: %s' %
+                           str(bad_columns))
         if pd.__version__ < '0.17.0':
             self._dataframe = self._dataframe.sort(columns=columns,
                                                    ascending=ascending)
