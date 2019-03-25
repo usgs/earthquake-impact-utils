@@ -70,9 +70,13 @@ class MercatorMap(object):
         if xmax < 0 and xmax < xmin:
             clon = (xmin + (xmax + 360)) / 2
 
-        clat = (ymin + ymax) / 2
+        # clat = (ymin + ymax) / 2
+        # Commenting out min_latitude because of this issue:
+        # https://github.com/SciTools/cartopy/issues/1155#issuecomment-432941088
+        # This seems to be a better, more consistent fix than dividing
+        # proj._threshold by 6
         self._proj = ccrs.Mercator(central_longitude=clon,
-                                   min_latitude=ymin,
+                                   #  min_latitude=ymin,
                                    max_latitude=ymax,
                                    globe=None)
         # self._proj = ccrs.AzimuthalEquidistant(central_longitude=clon,
@@ -85,7 +89,7 @@ class MercatorMap(object):
         self._ax = self._figure.add_axes(dimensions, projection=self._proj)
         try:
             self._ax.set_extent([xmin, xmax, ymin, ymax], crs=self._geoproj)
-        except:
+        except Exception:
             pproj = pyproj.Proj(self._proj.proj4_init)
             ulx, uly = pproj(xmin, ymax)
             lrx, lry = pproj(xmax, ymin)
@@ -217,8 +221,8 @@ class MercatorMap(object):
             if draw_dots:
                 self._ax.plot(row['lon'], row['lat'], 'k.',
                               transform=self._geoproj, zorder=zorder)
-            th = self.renderRow(row, fontname, fontsize, shadow, zorder,
-                                test=False)
+            _ = self.renderRow(row, fontname, fontsize, shadow, zorder,
+                               test=False)
 
         return Cities(self._cities._dataframe)
 
@@ -260,7 +264,8 @@ class MercatorMap(object):
         ikeep = [0]  # indices of non-overlapping cities in dataframe
         for i in range(1, len(tops)):
             # what is this cities name?
-            cname = newdf.iloc[i]['name']
+            # Seems like an unused variable...
+            # cname = newdf.iloc[i]['name']
 
             # what is the bounding box of this city
             left = lefts[i]
