@@ -197,7 +197,7 @@ class PDLSender(Sender):
         self._properties['directory'] = ''
         cmd = self._pdlcmd
         for propkey, propvalue in self._properties.items():
-            cmd = cmd.replace('[' + propkey.upper() + ']', propvalue)
+            cmd = cmd.replace('[' + propkey.upper() + ']', str(propvalue))
 
         retcode, stdout, stderr = get_command_output(cmd)
         if not retcode:
