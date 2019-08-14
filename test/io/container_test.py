@@ -9,6 +9,7 @@ import random
 
 import numpy as np
 import pandas as pd
+import pytz
 
 from impactutils.io.container import HDFContainer
 
@@ -215,14 +216,19 @@ def test_hdf_dataframes():
 
         # test pandas dataframe
         print('Test dataframe...')
-        d = {'Time': [datetime(1900, 1, 1), datetime(2000, 1, 1)],
+        ttime1 = datetime(1900, 1, 1)
+        ttime2 = datetime(2000, 1, 1)
+        utc = pytz.timezone('UTC')
+        utc_time1 = utc.localize(ttime1)
+        utc_time2 = utc.localize(ttime2)
+        d = {'Time': [utc_time1, utc_time2],
              'ID': ['thing1', 'thing2'],
              'Number': np.array([12.34, 25.67])}
         df = pd.DataFrame(d)
         container.setDataFrame('testframe1', df)
         outdf = container.getDataFrame('testframe1')
         assert outdf['Number'].sum() == df['Number'].sum()
-        assert outdf['Time'][0] == df['Time'][0]
+        assert pd.to_datetime(outdf['Time'][0]) == df['Time'][0]
 
         # test another dataframe
         df2 = pd.DataFrame(data=[4, 5, 6, 7], index=range(0, 4), columns=['A'])
