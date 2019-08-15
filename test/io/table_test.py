@@ -15,6 +15,7 @@ def test_write_xml():
     datadir = os.path.join(homedir, '..', 'data')
     complete_file = os.path.join(datadir, 'complete_pgm.xlsx')
     mmimin_file = os.path.join(datadir, 'minimum_mmi.xlsx')
+    shakemap_file = os.path.join(datadir, 'shakemap.xlsx')
     tempdir = None
     try:
         tempdir = tempfile.mkdtemp()
@@ -25,6 +26,20 @@ def test_write_xml():
         xmlfile = os.path.join(tempdir, 'bar.xml')
         df_mmimin, reference = read_excel(mmimin_file)
         dataframe_to_xml(df_mmimin, xmlfile, reference=reference)
+
+        xmlfile = os.path.join(tempdir, 'shakemap.xml')
+        df_shakemap, reference = read_excel(shakemap_file)
+        dataframe_to_xml(df_shakemap, xmlfile, reference=reference)
+        root = minidom.parse(xmlfile)
+        stationlist = root.getElementsByTagName('stationlist')[0]
+        station = stationlist.getElementsByTagName('station')[0]
+        comp = station.getElementsByTagName('comp')[0]
+        pga = comp.getElementsByTagName('pga')[0]
+        assert station.getAttribute('code') == "I1.8226"
+        assert comp.getAttribute('name') == 'H1'
+        tvalue = float(pga.getAttribute('value'))
+        np.testing.assert_almost_equal(tvalue, 0.1026)
+        root.unlink()
 
     except Exception:
         raise AssertionError('Could not write XML file.')

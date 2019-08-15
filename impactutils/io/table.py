@@ -14,9 +14,13 @@ CHANNEL_GROUPS = [['[A-Z]{2}E', '[A-Z]{2}N', '[A-Z]{2}Z'],
                   ['[A-Z]{2}1', '[A-Z]{2}2', '[A-Z]{2}Z'],
                   ['H1', 'H2', 'Z'],
                   ['UNK']]
+CHANNEL_PATTERNS = ['^[H,B][H,L,N][E,N,Z,1,2,3]$',  # match standard seed names
+                    '^H[1,2]$',  # match H1/H2
+                    '^Z$']  # match Z
 PGM_COLS = ['PGA', 'PGV', 'SA(0.3)', 'SA(1.0)', 'SA(3.0)']
 OPTIONAL = ['NAME', 'DISTANCE', 'REFERENCE',
             'INTENSITY', 'SOURCE', 'LOC', 'INSTTYPE', 'ELEV']
+FLOATRE = "[-+]?[0-9]*\.?[0-9]+"
 
 
 def _move(cellstr, nrows, ncols):
@@ -208,6 +212,16 @@ def read_excel(excelfile):
     return (df, reference)
 
 
+def _get_channels(columns):
+    channels = []
+    for column in columns:
+        for cmatch in CHANNEL_PATTERNS:
+            if re.search(cmatch, column) is not None:
+                channels.append(column)
+                break
+    return channels
+
+
 def dataframe_to_xml(df, xmlfile, reference=None):
     """Write a dataframe to ShakeMap XML format.
 
@@ -234,8 +248,11 @@ def dataframe_to_xml(df, xmlfile, reference=None):
         xmlfile (str): Path to file where XML file should be written.
     """
     if hasattr(df.columns, 'levels'):
-        top_headers = df.columns.levels[0]
-        channels = (set(top_headers) - set(REQUIRED_COLUMNS)) - set(OPTIONAL)
+        top_headers = set(df.columns.levels[0])
+        required = set(REQUIRED_COLUMNS)
+        optional = set(OPTIONAL)
+        channel_candidates = (top_headers - required) - optional
+        channels = _get_channels(channel_candidates)
     else:
         channels = []
     root = etree.Element('shakemap-data', code_version="3.5", map_version="3")
@@ -314,7 +331,7 @@ def dataframe_to_xml(df, xmlfile, reference=None):
 
                 # loop over desired output fields
                 for pgm in ['pga', 'pgv', 'psa03', 'psa10', 'psa30']:
-                    newpgm = _translate_imt(pgm)
+                    newpgm = _translate_imt(pgm, row[channel].index)
                     c1 = newpgm not in row[channel]
                     c2 = False
                     if not c1:
@@ -352,15 +369,24 @@ def dataframe_to_xml(df, xmlfile, reference=None):
     tree.write(xmlfile, pretty_print=True)
 
 
-def _translate_imt(oldimt):
+def _translate_imt(oldimt, imtlist):
     # translate from psa03 to sa(0.3)
     if oldimt.upper() in ['PGA', 'PGV']:
         newimt = oldimt.upper()
     else:
         match = re.search(r'\d+', oldimt)
         if match is not None:
-            period = float(match.group())
-            newimt = 'SA(%.1f)' % (period / 10)
+            period = float(match.group()) / 10
+            for imt in imtlist:
+                if not imt.startswith('SA'):
+                    continue
+                try:
+                    imt_period = float(re.search(FLOATRE, imt).group())
+                except Exception:
+                    continue
+                if imt_period == period:
+                    newimt = imt
+                    break
         else:
             newimt = ''
     return newimt
