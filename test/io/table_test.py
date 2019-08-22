@@ -33,7 +33,7 @@ def test_write_xml():
         root = minidom.parse(xmlfile)
         stationlist = root.getElementsByTagName('stationlist')[0]
         station = stationlist.getElementsByTagName('station')[0]
-        comp = station.getElementsByTagName('comp')[0]
+        comp = station.getElementsByTagName('comp')[3]
         pga = comp.getElementsByTagName('pga')[0]
         assert station.getAttribute('code') == "I1.8226"
         assert comp.getAttribute('name') == 'H1'
@@ -166,10 +166,8 @@ def test_read_dyfi():
     datadir = os.path.join(homedir, '..', 'data')
     dyfi_file = os.path.join(datadir, 'example_dyfi.csv')
     df = pd.read_csv(dyfi_file)
-    assert np.testing.assert_almost_equal(
-        df['INTENSITY_STDDEV'].sum(), 1.5)
-    assert np.testing.assert_almost_equal(
-        df['NRESP'].sum(), 1.5)
+    np.testing.assert_almost_equal(df['INTENSITY_STDDEV'].sum(), 1.472)
+    np.testing.assert_almost_equal(df['NRESP'].sum(), 25)
 
     outdir = tempfile.mkdtemp()
     try:
@@ -179,8 +177,8 @@ def test_read_dyfi():
         root = minidom.parse(xmlfile)
         stations = root.getElementsByTagName('station')
         for station in stations:
-            assert station.getAttribute('intensity_stddev') > 0.1
-            assert station.getAttribute('nresp') > 1
+            assert float(station.getAttribute('intensity_stddev')) > 0.1
+            assert int(station.getAttribute('nresp')) > 1
 
     except Exception:
         assert 1 == 2
