@@ -19,7 +19,8 @@ CHANNEL_PATTERNS = ['^[H,B][H,L,N][E,N,Z,1,2,3]$',  # match standard seed names
                     '^Z$']  # match Z
 PGM_COLS = ['PGA', 'PGV', 'SA(0.3)', 'SA(1.0)', 'SA(3.0)']
 OPTIONAL = ['NAME', 'DISTANCE', 'REFERENCE',
-            'INTENSITY', 'SOURCE', 'LOC', 'INSTTYPE', 'ELEV']
+            'INTENSITY', 'SOURCE', 'LOC', 'INSTTYPE', 'ELEV',
+            'NRESP', 'INTENSITY_STDDEV']
 FLOATRE = "[-+]?[0-9]*\.?[0-9]+"
 
 
@@ -242,6 +243,9 @@ def dataframe_to_xml(df, xmlfile, reference=None):
      - LOC: Description of location (i.e., "5 km south of Wellington")
             (OPTIONAL)
      - INSTTYPE: Instrument type (FBA, etc.) (OPTIONAL)
+     - INTENSITY: MMI intensity. (OPTIONAL)
+     - NRESP: Number of responses for aggregated intensity. (OPTIONAL)
+     - INTENSITY_STDDEV: Uncertainty for this intensity. (OPTIONAL)
 
     Args:
         df (DataFrame): Pandas dataframe, as described in read_excel.
@@ -300,6 +304,10 @@ def dataframe_to_xml(df, xmlfile, reference=None):
             station.attrib['dist'] = '%.1f' % tmprow['DISTANCE']
         if 'INTENSITY' in tmprow:
             station.attrib['intensity'] = '%.1f' % tmprow['INTENSITY']
+        if 'NRESP' in tmprow:
+            station.attrib['intensity'] = '%i' % tmprow['NRESP']
+        if 'INTENSITY_STDDEV' in tmprow:
+            station.attrib['intensity'] = '%.2f' % tmprow['INTENSITY_STDDEV']
         if 'SOURCE' in tmprow:
             station.attrib['source'] = tmprow['SOURCE'].strip()
         if 'LOC' in tmprow:
