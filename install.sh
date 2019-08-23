@@ -76,6 +76,7 @@ fi
 package_list=(
     "beautifulsoup4"
     "cartopy"
+    "libgdal=2.4.2"
     "fiona"
     "h5py"
     "ipython"
@@ -126,4 +127,3 @@ pip install -e .
 
 # Tell the user they have to activate this environment
 echo "Type 'conda activate $VENV' to use this new virtual environment."
-

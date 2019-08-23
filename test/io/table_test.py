@@ -158,7 +158,36 @@ def test_dataframe_to_xml():
         shutil.rmtree(outdir)
 
 
+# Use DYFI raw data and attempt to create a valid
+# Shakemap input XML.
+def test_read_dyfi():
+    homedir = os.path.dirname(os.path.abspath(
+        __file__))  # where is this script?
+    datadir = os.path.join(homedir, '..', 'data')
+    dyfi_file = os.path.join(datadir, 'example_dyfi.csv')
+    df = pd.read_csv(dyfi_file)
+    np.testing.assert_almost_equal(df['INTENSITY_STDDEV'].sum(), 1.472)
+    np.testing.assert_almost_equal(df['NRESP'].sum(), 25)
+
+    outdir = tempfile.mkdtemp()
+    try:
+        xmlfile = os.path.join(outdir, 'dyfi_dat.xml')
+        dataframe_to_xml(df, xmlfile)
+        root = minidom.parse(xmlfile)
+        stations = root.getElementsByTagName('station')
+        for station in stations:
+            assert float(station.getAttribute('intensity')) > 1
+            assert float(station.getAttribute('intensity_stddev')) > 0.1
+            assert int(station.getAttribute('nresp')) > 1
+
+    except Exception:
+        assert 1 == 2
+    finally:
+        shutil.rmtree(outdir)
+
+
 if __name__ == '__main__':
+    test_read_dyfi()
     test_write_xml()
     test_read_tables()
     test_dataframe_to_xml()
