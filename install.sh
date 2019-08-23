@@ -76,6 +76,7 @@ fi
 package_list=(
     "beautifulsoup4"
     "cartopy"
+    "libgdal=2.4.2"
     "fiona"
     "h5py"
     "ipython"
@@ -91,7 +92,7 @@ package_list=(
     "pytest"
     "pytest-cov"
     "pytest-mpl"
-    "python=3.6"
+    "python>=3.6"
     "shapely"
     "xlrd"
 )
@@ -120,10 +121,11 @@ fi
 echo "Activating the $VENV virtual environment"
 conda activate $VENV
 
+sleep 5
+
 # This package
 echo "Installing impactutils..."
 pip install -e .
 
 # Tell the user they have to activate this environment
 echo "Type 'conda activate $VENV' to use this new virtual environment."
-
