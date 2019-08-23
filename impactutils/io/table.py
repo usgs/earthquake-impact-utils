@@ -305,9 +305,9 @@ def dataframe_to_xml(df, xmlfile, reference=None):
         if 'INTENSITY' in tmprow:
             station.attrib['intensity'] = '%.1f' % tmprow['INTENSITY']
         if 'NRESP' in tmprow:
-            station.attrib['intensity'] = '%i' % tmprow['NRESP']
+            station.attrib['nresp'] = '%i' % tmprow['NRESP']
         if 'INTENSITY_STDDEV' in tmprow:
-            station.attrib['intensity'] = '%.2f' % tmprow['INTENSITY_STDDEV']
+            station.attrib['intensity_stddev'] = '%.2f' % tmprow['INTENSITY_STDDEV']
         if 'SOURCE' in tmprow:
             station.attrib['source'] = tmprow['SOURCE'].strip()
         if 'LOC' in tmprow:

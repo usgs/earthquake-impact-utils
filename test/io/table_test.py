@@ -33,7 +33,7 @@ def test_write_xml():
         root = minidom.parse(xmlfile)
         stationlist = root.getElementsByTagName('stationlist')[0]
         station = stationlist.getElementsByTagName('station')[0]
-        comp = station.getElementsByTagName('comp')[3]
+        comp = station.getElementsByTagName('comp')[0]
         pga = comp.getElementsByTagName('pga')[0]
         assert station.getAttribute('code') == "I1.8226"
         assert comp.getAttribute('name') == 'H1'
@@ -173,10 +173,10 @@ def test_read_dyfi():
     try:
         xmlfile = os.path.join(outdir, 'dyfi_dat.xml')
         dataframe_to_xml(df, xmlfile)
-        # HNN,psa10,0.0107
         root = minidom.parse(xmlfile)
         stations = root.getElementsByTagName('station')
         for station in stations:
+            assert float(station.getAttribute('intensity')) > 1
             assert float(station.getAttribute('intensity_stddev')) > 0.1
             assert int(station.getAttribute('nresp')) > 1
 
@@ -188,6 +188,6 @@ def test_read_dyfi():
 
 if __name__ == '__main__':
     test_read_dyfi()
-    #test_write_xml()
-    #test_read_tables()
-    #test_dataframe_to_xml()
+    test_write_xml()
+    test_read_tables()
+    test_dataframe_to_xml()
