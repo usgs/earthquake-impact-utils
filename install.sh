@@ -121,8 +121,6 @@ fi
 echo "Activating the $VENV virtual environment"
 conda activate $VENV
 
-sleep 5
-
 # This package
 echo "Installing impactutils..."
 pip install -e .
