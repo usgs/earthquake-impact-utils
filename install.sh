@@ -91,7 +91,7 @@ package_list=(
     "pytest"
     "pytest-cov"
     "pytest-mpl"
-    "python>=3.6"
+    "python=3.6"
     "shapely"
     "xlrd"
 )
