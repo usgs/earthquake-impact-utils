@@ -196,13 +196,31 @@ class PDLSender(Sender):
         self._properties['file'] = ''
         self._properties['directory'] = ''
         cmd = self._pdlcmd
+
+        prop_nuggets = []
         for propkey, propvalue in self._properties.items():
-            cmd = cmd.replace('[' + propkey.upper() + ']', str(propvalue))
+            if isinstance(propvalue, float):
+                prop_nuggets.append('--property-%s=%.4f' %
+                                    (propkey, propvalue))
+            elif isinstance(propvalue, int):
+                prop_nuggets.append('--property-%s=%i' % (propkey, propvalue))
+            elif isinstance(propvalue, datetime.datetime):
+                prop_nuggets.append(
+                    '--property-%s=%s'
+                    % (propkey, propvalue.strftime(DATE_TIME_FMT)[0:23]))
+            elif isinstance(propvalue, str):
+                prop_nuggets.append('--property-%s="%s"' %
+                                    (propkey, propvalue))
+            else:
+                prop_nuggets.append('--property-%s=%s' %
+                                    (propkey, str(propvalue)))
+
+        cmd = cmd.replace('[PRODUCT_PROPERTIES]', ' '.join(prop_nuggets))
 
         retcode, stdout, stderr = get_command_output(cmd)
         if not retcode:
             fmt = 'Could not delete product "%s" due to error "%s"'
-            tpl = (code, stdout + stderr)
+            tpl = (retcode, stdout + stderr)
             raise Exception(fmt % tpl)
 
         return stdout
