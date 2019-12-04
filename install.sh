@@ -106,7 +106,7 @@ conda remove -y -n $VENV --all
 # Create a conda virtual environment
 echo "Creating the $VENV virtual environment:"
 conda create -y -n $VENV -c conda-forge \
-          --channel-priority ${package_list[*]}
+          --strict-channel-priority ${package_list[*]}
 
 # Bail out at this point if the conda create command fails.
 # Clean up zip files we've downloaded
