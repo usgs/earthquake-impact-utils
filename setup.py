@@ -18,9 +18,10 @@ setup(name='earthquake-impact-utils',
                 'impactutils.mapping',
                 'impactutils.time',
                 'impactutils.transfer',
+                'impactutils.rupture',
                 'impactutils.extern',
                 'impactutils.vectorutils',
                 'impactutils.extern.scp',
                 'impactutils.extern.openquake',
                 'impactutils.comcat']
-)
+      )
