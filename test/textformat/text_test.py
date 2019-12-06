@@ -21,6 +21,7 @@ def test():
 
     print('Testing setting number precision...')
     assert text.set_num_precision(7642, 2) == 7600
+    assert text.set_num_precision(321, 2) == 320
     print('Passed setting number precision...')
 
     print('Testing rounding population value...')

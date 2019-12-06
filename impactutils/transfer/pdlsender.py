@@ -128,39 +128,50 @@ class PDLSender(Sender):
             cmd = cmd.replace('[DIRECTORY]', '')
 
         # add product properties as --property-PROPKEY=PROPVALUE
-        prop_nuggets = []
-        for propkey, propvalue in self._product_properties.items():
-            if isinstance(propvalue, float):
-                prop_nuggets.append('--property-%s=%.4f' %
-                                    (propkey, propvalue))
-            elif isinstance(propvalue, int):
-                prop_nuggets.append('--property-%s=%i' % (propkey, propvalue))
-            elif isinstance(propvalue, datetime.datetime):
-                prop_nuggets.append(
-                    '--property-%s=%s'
-                    % (propkey, propvalue.strftime(DATE_TIME_FMT)[0:23]))
-            elif isinstance(propvalue, str):
-                prop_nuggets.append('--property-%s="%s"' %
-                                    (propkey, propvalue))
-            else:
-                prop_nuggets.append('--property-%s=%s' %
-                                    (propkey, str(propvalue)))
-        cmd = cmd.replace('[PRODUCT_PROPERTIES]', ' '.join(prop_nuggets))
+        if hasattr(self, '_product_properties'):
+            prop_nuggets = []
+            for propkey, propvalue in self._product_properties.items():
+                if isinstance(propvalue, float):
+                    prop_nuggets.append('--property-%s=%.4f' %
+                                        (propkey, propvalue))
+                elif isinstance(propvalue, int):
+                    prop_nuggets.append('--property-%s=%i' %
+                                        (propkey, propvalue))
+                elif isinstance(propvalue, datetime.datetime):
+                    prop_nuggets.append(
+                        '--property-%s=%s'
+                        % (propkey, propvalue.strftime(DATE_TIME_FMT)[0:23]))
+                elif isinstance(propvalue, str):
+                    prop_nuggets.append('--property-%s="%s"' %
+                                        (propkey, propvalue))
+                else:
+                    prop_nuggets.append('--property-%s=%s' %
+                                        (propkey, str(propvalue)))
+            cmd = cmd.replace('[PRODUCT_PROPERTIES]', ' '.join(prop_nuggets))
+        else:
+            cmd = cmd.replace('[PRODUCT_PROPERTIES]', '')
 
         # add optional properties
-        opt_nuggets = []
-        for propkey in self._optional_properties:
-            if propkey in self._properties:
-                if propkey == 'eventtime':
-                    opt_nuggets.append(
-                        '--%s=%sZ'
-                        % (propkey,
-                           self._properties[propkey].strftime(DATE_TIME_FMT)[0:23]))
-                else:
-                    fmt = '--%s=' + self._optional_properties_fmt[propkey]
-                    opt_nuggets.append(
-                        fmt % (propkey, self._properties[propkey]))
-        cmd = cmd.replace('[OPTIONAL_PROPERTIES]', ' '.join(opt_nuggets))
+        opts = set(self._optional_properties)
+        props = set(self._properties.keys())
+        hasopts = len(opts & props)
+
+        if hasopts:
+            opt_nuggets = []
+            for propkey in self._optional_properties:
+                if propkey in self._properties:
+                    if propkey == 'eventtime':
+                        opt_nuggets.append(
+                            '--%s=%sZ'
+                            % (propkey,
+                               self._properties[propkey].strftime(DATE_TIME_FMT)[0:23]))
+                    else:
+                        fmt = '--%s=' + self._optional_properties_fmt[propkey]
+                        opt_nuggets.append(
+                            fmt % (propkey, self._properties[propkey]))
+            cmd = cmd.replace('[OPTIONAL_PROPERTIES]', ' '.join(opt_nuggets))
+        else:
+            cmd = cmd.replace('[OPTIONAL_PROPERTIES]', '')
 
         # call PDL on the command line
         retcode, stdout, stderr = get_command_output(cmd)
