@@ -73,10 +73,8 @@ def set_num_precision(number, precision, mode='int'):
     Returns:
         Input value with 'precision' digits of precision.
     """
-    ndigits = len(str(int(floor(number))))
-    value = round(10.0**(precision - 1) *
-                  number / (10.0**(ndigits - 1))) / 10.0**(precision - 1)
-    value = value * 10.0**(ndigits - 1)
+    fmt = '{:.%ie}' % (precision - 1)
+    value = float(fmt.format(number))
     if mode == 'int':
         return int(value)
     else:

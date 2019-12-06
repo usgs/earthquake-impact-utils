@@ -54,8 +54,8 @@ class GeoServe(object):
         """
         regurl = REGIONS_URL.replace('[LAT]', str(lat))
         regurl = regurl.replace('[LON]', str(lon))
-        placeurl = PLACES_URL.replace('[LAT]',str(lat))
-        placeurl = placeurl.replace('[LON]',str(lon))
+        placeurl = PLACES_URL.replace('[LAT]', str(lat))
+        placeurl = placeurl.replace('[LON]', str(lon))
         placeurl = placeurl.replace('[RADIUS]', str(maxradius))
         placeurl = placeurl.replace('[POP]', str(minpop))
         self._placedict = self._getJSONContent(placeurl)
@@ -91,7 +91,7 @@ class GeoServe(object):
             dict: geojson-like dictionaries, described here: https://earthquake.usgs.gov/ws/geoserve/regions.php
                   The 'metadata' dictionary is omitted.
         """
-        self._regdict.pop('metadata', None)
+        self._regdict.get('metadata', None)
         return self._regdict
 
     def getAuthoritative(self):
@@ -212,7 +212,7 @@ class ComCatInfo(object):
         """Query ComCat for the location string associated with input ID.
 
         Returns:
-            Location string (i.e. "24km NE of Dharchula, India")
+            int: 1 if a tsunami message was received from NOAA, 0 otherwise.
         """
         tsunami = self._jdict['properties']['tsunami']
         return tsunami
