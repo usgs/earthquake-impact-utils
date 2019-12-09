@@ -86,7 +86,7 @@ package_list=(
     "numpy"
     "obspy"
     "openpyxl"
-    "openquake"
+    "openquake.engine"
     "pandas"
     "paramiko"
     "pip"
