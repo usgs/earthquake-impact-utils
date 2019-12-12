@@ -85,7 +85,7 @@ class CopySender(Sender):
             nfiles += 1
 
         return (nfiles,
-                '%i files sent successfully using CopySender.' % nfiles)
+                f'{int(nfiles):d} files sent successfully using CopySender.')
 
     def cancel(self, cancel_content=None):
         """
@@ -105,8 +105,7 @@ class CopySender(Sender):
         if cancel_content is not None:
             f.write(cancel_content)
         f.close()
-        return ('A .cancel file has been placed in remote directory %s.'
-                % remote_folder)
+        return (f'A .cancel file has been placed in remote directory {remote_folder}.')
 
     def _copy_file_with_path(self, local_file, remote_folder,
                              local_folder=None):

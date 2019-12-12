@@ -15,14 +15,13 @@ from impactutils.comcat.query import ComCatInfo, GeoServe
 
 
 def test_geoserve():
-    positions = [{'name': 'california', 'coords': (37.28935, -119.53125), 'source': 'NC', 'type': 'anss', 
-    'place':'Oakhurst', 'region':'Central California'},
+    positions = [{'name': 'california', 'coords': (37.28935, -119.53125), 'source': 'NC', 'type': 'anss',
+                  'place': 'Oakhurst', 'region': 'Central California'},
                  {'name': 'alaska', 'coords': (
-                     63.379217, -151.699219), 'source': 'AK', 'type': 'anss', 'place':'Healy', 'region':'Central Alaska'},
+                     63.379217, -151.699219), 'source': 'AK', 'type': 'anss', 'place': 'Healy', 'region': 'Central Alaska'},
                  {'name': 'aleutians', 'coords': (
-                     53.209322, -167.34375), 'source': 'US', 'type': 'NA', 'place':'Unalaska', 'region':'Fox Islands, Aleutian Islands, Alaska'},
-                 {'name': 'japan', 'coords': (36.700907, 138.999023), 'source': 'US', 'type': 'NA', 'place':'Numata', 'region':'eastern Honshu, Japan'}]
-
+                     53.209322, -167.34375), 'source': 'US', 'type': 'NA', 'place': 'Unalaska', 'region': 'Fox Islands, Aleutian Islands, Alaska'},
+                 {'name': 'japan', 'coords': (36.700907, 138.999023), 'source': 'US', 'type': 'NA', 'place': 'Numata', 'region': 'eastern Honshu, Japan'}]
 
     for pdict in positions:
         lat, lon = pdict['coords']
@@ -31,7 +30,7 @@ def test_geoserve():
         pname = pdict['name']
         place = pdict['place']
         region = pdict['region']
-        print('Testing %s authoritative region...' % pname)
+        print(f'Testing {pname} authoritative region...')
         gs = GeoServe(lat, lon)
         authsrc, authtype = gs.getAuthoritative()
         assert authsrc == psource
@@ -116,4 +115,3 @@ def test_cc():
 if __name__ == '__main__':
     test_geoserve()
     test_cc()
-    

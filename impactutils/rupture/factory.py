@@ -70,8 +70,8 @@ def get_rupture(origin, file=None, mesh_dx=0.5, new_format=True):
         except Exception as e:
             if not isinstance(e, json.JSONDecodeError) and \
                not isinstance(e, UnicodeDecodeError):
-                logging.warning("Unknown exception reading fault file: %s" %
-                                str(e))
+                logging.warning(
+                    f"Unknown exception reading fault file: {str(e)}")
             # -----------------------------------------------------------------
             # Reading as json failed, so hopefully it is a ShakeMap 3 text file
             # -----------------------------------------------------------------
@@ -80,10 +80,10 @@ def get_rupture(origin, file=None, mesh_dx=0.5, new_format=True):
                 rupt = rupture_from_dict_and_origin(d, origin, mesh_dx=mesh_dx)
             except ValueError as e:
                 logging.error(e)
-                raise ValueError("Error reading %s. This could have been "
+                raise ValueError(f"Error reading {file}. This could have been "
                                  "because the latitude and longitdue are "
                                  "reversed. Try changing the 'new_format' "
-                                 "option." % file)
+                                 "option.")
             except Exception as e:
                 logging.error(e)
                 raise IOError("Unknown rupture file format.")
@@ -327,17 +327,17 @@ def text_to_json(file, new_format=True):
         if len(parts) == 1:
             if new_format:
                 raise ShakeLibException(
-                    'Rupture file %s has unspecified delimiters.' % file)
+                    f'Rupture file {file} has unspecified delimiters.')
             parts = line.split(',')
             if len(parts) == 1:
                 raise ShakeLibException(
-                    'Rupture file %s has unspecified delimiters.' % file)
+                    f'Rupture file {file} has unspecified delimiters.')
 
         if len(parts) != 3:
-            msg = 'Rupture file %s is not in lat, lon, depth format.'
+            msg = f'Rupture file {file} is not in lat, lon, depth format.'
             if new_format:
-                'Rupture file %s is not in lon, lat, depth format.'
-            raise ShakeLibException(msg % file)
+                f'Rupture file {file} is not in lon, lat, depth format.'
+            raise ShakeLibException(msg)
 
         parts = [float(p) for p in parts]
         if not new_format:

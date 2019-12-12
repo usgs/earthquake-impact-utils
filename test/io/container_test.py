@@ -44,7 +44,7 @@ def test_hdf_dictonaries():
                        'dob': datetime(1950, 1, 1, 23, 43, 12)}
             container.setDictionary('person', indict1)
         except TypeError as te:
-            print('Expected failure: %s' % str(te))
+            print(f'Expected failure: {str(te)}')
             assert 1 == 1
 
         # test more complicated dictionary

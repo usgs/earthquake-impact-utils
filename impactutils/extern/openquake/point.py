@@ -59,10 +59,10 @@ class Point(object):
                              "elevation on Earth's surface (-8.848 km)")
 
         if not -180.0 <= longitude <= 180.0:
-            raise ValueError("longitude %.6f outside range" % longitude)
+            raise ValueError(f"longitude {longitude:.6f} outside range")
 
         if not -90.0 <= latitude <= 90.0:
-            raise ValueError("latitude %.6f outside range" % latitude)
+            raise ValueError(f"latitude {latitude:.6f} outside range")
 
         self.depth = depth
         self.latitude = latitude
@@ -89,7 +89,7 @@ class Point(object):
         Generate WKT (Well-Known Text) to represent this point in 2 dimensions
         (ignoring depth).
         """
-        return 'POINT(%s %s)' % (self.longitude, self.latitude)
+        return f'POINT({self.longitude} {self.latitude})'
 
     def point_at(self, horizontal_distance, vertical_increment, azimuth):
         """
@@ -192,9 +192,7 @@ class Point(object):
         >>> str(Point(1.0 / 3.0, -39.999999999, 1.6666666666))
         '<Latitude=-40.000000, Longitude=0.333333, Depth=1.6667>'
         """
-        return "<Latitude=%.6f, Longitude=%.6f, Depth=%.4f>" % (
-            self.latitude, self.longitude, self.depth
-        )
+        return f"<Latitude={self.latitude:.6f}, Longitude={self.longitude:.6f}, Depth={self.depth:.4f}>"
 
     def __repr__(self):
         """

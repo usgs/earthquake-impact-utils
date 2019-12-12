@@ -65,8 +65,7 @@ class Cities(object):
             Cities instance.
         """
         if len(set(dataframe.columns).intersection(set(self.REQFIELDS))) < 3:
-            raise KeyError('Missing some of required keys: %s'
-                           % self.REQFIELDS)
+            raise KeyError(f'Missing some of required keys: {self.REQFIELDS}')
         self._dataframe = dataframe.copy()
 
     # "magic" methods
@@ -201,8 +200,8 @@ class Cities(object):
         """
         bad_columns = set(columns).difference(set(self._dataframe.columns()))
         if bad_columns:
-            raise KeyError('Column(s) not in list of DataFrame columns: %s' %
-                           str(bad_columns))
+            raise KeyError(
+                f'Column(s) not in list of DataFrame columns: {str(bad_columns)}')
         if pd.__version__ < '0.17.0':
             self._dataframe = self._dataframe.sort(columns=columns,
                                                    ascending=ascending)

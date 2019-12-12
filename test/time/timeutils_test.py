@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 # stdlib imports
-import os.path
-import sys
-from datetime import datetime, timedelta
 from collections import OrderedDict
-import tempfile
+from datetime import datetime, timedelta
+import os.path
 import shutil
+import sys
+import tempfile
 
+# local imports
 from impactutils.time.timeutils import \
     LocalTime, ElapsedTime, get_recent_timezone_data
 
@@ -28,11 +29,11 @@ def _test_local_time(shapefile=None):
             shpfile = shapefile
 
         standard_offsets = OrderedDict([
-                ('Zambia', (-8.470, 30.085, 2)),
-                ('Manhattan', (40.7831, -73.9712, -5)),
-                ('Denver', (39.704545, -104.941406, -7)),
-                ('Fiji', (-18.666, 176.073, 12)),
-                ('LA', (33.864714, -118.212891, -8))])
+            ('Zambia', (-8.470, 30.085, 2)),
+            ('Manhattan', (40.7831, -73.9712, -5)),
+            ('Denver', (39.704545, -104.941406, -7)),
+            ('Fiji', (-18.666, 176.073, 12)),
+            ('LA', (33.864714, -118.212891, -8))])
         utctime = datetime(2016, 1, 1, 20, 23, 00)
         ltime = None
         for key, value in standard_offsets.items():
@@ -44,23 +45,23 @@ def _test_local_time(shapefile=None):
                 ltime.update(utctime, lat, lon)
             t2 = datetime.now()
             dt = t2 - t1
-            print('Testing standard time offset for %s' % key)
+            print(f'Testing standard time offset for {key}')
             localtime = ltime.getLocalTime()
             seconds = dt.seconds + dt.microseconds / 1e6
             cmptime = utctime + timedelta(hours=cmpoffset)
             assert localtime == cmptime
-            print('Time offset correct - %.1f seconds.' % seconds)
+            print(f'Time offset correct - {seconds:.1f} seconds.')
 
         dst_offsets = OrderedDict([
-                ('Manhattan', (40.7831, -73.9712, -4)),
-                ('Denver', (39.704545, -104.941406, -6)),
-                ('Phoenix', (33.421556, -112.06604, -7)),
-                ('LA', (33.864714, -118.212891, -7))])
+            ('Manhattan', (40.7831, -73.9712, -4)),
+            ('Denver', (39.704545, -104.941406, -6)),
+            ('Phoenix', (33.421556, -112.06604, -7)),
+            ('LA', (33.864714, -118.212891, -7))])
 
         utctime = datetime(2016, 8, 1, 20, 23, 00)
         ltime = None
         for key, value in dst_offsets.items():
-            print('Testing DST time offset for %s' % key)
+            print(f'Testing DST time offset for {key}')
             lat, lon, cmpoffset = value
             t1 = datetime.now()
             if ltime is None:
@@ -73,9 +74,9 @@ def _test_local_time(shapefile=None):
             seconds = dt.seconds + dt.microseconds / 1e6
             cmptime = utctime + timedelta(hours=cmpoffset)
             assert localtime == cmptime
-            print('Time offset correct - %.1f seconds.' % seconds)
+            print(f'Time offset correct - {seconds:.1f} seconds.')
     except Exception as e:
-        raise Exception('Could not run local_time_test: "%s"' % str(e))
+        raise Exception(f'Could not run local_time_test: "{str(e)}"')
     finally:
         if tdir is not None:
             shutil.rmtree(tdir)
@@ -97,7 +98,7 @@ def test_elapsed():
     for nsec, compstr in dtimes.items():
         time2 = time1 + timedelta(seconds=nsec)
         estr = etime.getElapsedString(time1, time2)
-        print('%s == %s' % (compstr, estr))
+        print(f'{compstr} == {estr}')
         assert compstr == estr
 
 

@@ -1,26 +1,23 @@
 #!/usr/bin/env python
 
 # stdlib imports
+from cartopy.mpl.geoaxes import GeoAxes
+import cartopy.crs as ccrs  # projections
+import matplotlib
+import matplotlib.ticker as mticker
+import matplotlib.pyplot as plt
+import numpy as np
 import os.path
 import sys
+
+# local imports
+from impactutils.mapping.scalebar import draw_scale
 
 # hack the path so that I can debug these functions if I need to
 homedir = os.path.dirname(os.path.abspath(__file__))  # where is this script?
 impactdir = os.path.abspath(os.path.join(homedir, '..', '..'))
 # put this at the front of the system path, ignoring any installed impact stuff
 sys.path.insert(0, impactdir)
-
-# for scale function
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import matplotlib
-
-# for tests
-import cartopy.crs as ccrs  # projections
-from cartopy.mpl.geoaxes import GeoAxes
-
-from impactutils.mapping.scalebar import draw_scale
 
 
 def test_draw_scale():

@@ -114,21 +114,24 @@ def dollar_round(value, digits=2, mode='short'):
     suffixdict = {'K': 1e3, 'M': 1e6, 'B': 1e9}
     if mode == 'short':
         if value >= suffixdict['K'] and value < suffixdict['M']:
-            return '$%sK' % set_num_precision(value / 1e3, digits, mode='float')
+            dollar_value = set_num_precision(value / 1e3, digits, mode='float')
+            return f'${dollar_value}K'
         if value >= suffixdict['M'] and value < suffixdict['B']:
-            return '$%sM' % set_num_precision(value / 1e6, digits, mode='float')
+            dollar_value = set_num_precision(value / 1e6, digits, mode='float')
+            return f'${dollar_value}M'
         else:
-            return '$%sB' % set_num_precision(value / 1e9, digits, mode='float')
+            dollar_value = set_num_precision(value / 1e9, digits, mode='float')
+            return f'${dollar_value}B'
     else:
         if value >= suffixdict['K'] and value < suffixdict['M']:
-            return ('$%s thousand'
-                    % set_num_precision(value / 1e3, digits, mode='float'))
+            dollar_value = set_num_precision(value / 1e3, digits, mode='float')
+            return (f'${dollar_value} thousand')
         if value > suffixdict['M'] and value < suffixdict['B']:
-            return ('$%s million'
-                    % set_num_precision(value / 1e6, digits, mode='float'))
+            dollar_value = set_num_precision(value / 1e6, digits, mode='float')
+            return (f'${dollar_value} million')
         else:
-            return ('$%s billion'
-                    % set_num_precision(value / 1e9, digits, mode='float'))
+            dollar_value = set_num_precision(value / 1e9, digits, mode='float')
+            return (f'${dollar_value} billion')
 
 
 def pop_round_short(value, usemillion=False):
@@ -245,5 +248,6 @@ def commify(num, separator=','):
     num = str(num)  # just in case we were passed a numeric value
     more_to_do = 1
     while more_to_do:
-        (num, more_to_do) = regex.subn(r'\1%s\2' % separator, num)
+        substring = rf'\1{separator}\2'
+        (num, more_to_do) = regex.subn(substring, num)
     return num

@@ -22,7 +22,28 @@ def test_write_xml():
         df, reference = read_excel(complete_file)
         xmlfile = os.path.join(tempdir, 'foo.xml')
         dataframe_to_xml(df, xmlfile, reference=reference)
-
+        target1 = '<psa03 flag="0" value="5.1200"/>'
+        target2 = '<station code="MX.XALA" lat="19.5299" lon="-96.9020" name="Veracruz" netid="MX" dist="594.0" intensity="1.7" source="National Seismic Service" elev="5.1">'
+        target3 = '<pgv flag="0" value="0.8455"/>'
+        target4 = '<comp name="H1" orientation="h">'
+        target5 = '<psa03 flag="0" value="10.3070"/>'
+        target6 = '<psa30 flag="0" value="2.0700"/>'
+        target7 = '<psa10 flag="0" value="2.2230"/>'
+        target8 = '<psa30 flag="0" value="1.8800"/>'
+        target9 = '<station code="MX.ACAM" lat="20.0432" lon="-100.7168" name="Guanajuato" netid="MX" dist="913.1" intensity="0.7" source="National Seismic Service" elev="5.1">'
+        target10 = 'station code="MX.ACP2" lat="16.8743" lon="-99.8865" name="Guerrero" netid'
+        with open(xmlfile, 'r') as f:
+            xmlstr = f.read()
+        assert target1 in xmlstr
+        assert target2 in xmlstr
+        assert target3 in xmlstr
+        assert target4 in xmlstr
+        assert target5 in xmlstr
+        assert target6 in xmlstr
+        assert target7 in xmlstr
+        assert target8 in xmlstr
+        assert target9 in xmlstr
+        assert target10 in xmlstr
         xmlfile = os.path.join(tempdir, 'bar.xml')
         df_mmimin, reference = read_excel(mmimin_file)
         dataframe_to_xml(df_mmimin, xmlfile, reference=reference)

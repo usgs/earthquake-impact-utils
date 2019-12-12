@@ -179,8 +179,8 @@ class ColorPalette(object):
             ColorPalette object.
         """
         if preset not in PALETTES:
-            raise Exception('Preset %s not in list of supported presets.'
-                            % preset)
+            raise Exception(
+                f'Preset {preset} not in list of supported presets.')
         z0 = PALETTES[preset]['z0'].copy()
         z1 = PALETTES[preset]['z1'].copy()
         rgb0 = PALETTES[preset]['rgb0'].copy()
@@ -374,9 +374,9 @@ class ColorPalette(object):
             return rgba
         elif color_format == 'hex':
             color255 = [int(c * 255) for c in color]
-            hexcolor = ('#%02x%02x%02x'
-                        % (color255[0], color255[1], color255[2])).upper()
+            hexcolor = (
+                f'#{color255[0]:02x}{color255[1]:02x}{color255[2]:02x}').upper()
             return hexcolor
         else:
-            raise AttributeError('Color format %s is not supported.'
-                                 % color_format)
+            raise AttributeError(
+                f'Color format {color_format} is not supported.')
