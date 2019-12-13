@@ -92,11 +92,10 @@ class FTPSender(Sender):
                         x = 1
 
             ftp.quit()
-            return (nfiles, '%i files were sent successfully to %s %s'
-                    % (nfiles, remote_host, remote_folder))
+            return (nfiles, f'{int(nfiles):d} files were sent successfully to {remote_host} {remote_folder}')
         except Exception as obj:
             raise Exception(
-                'Could not send to %s.  Error "%s"' % (host, str(obj)))
+                f'Could not send to {host}.  Error "{str(obj)}"')
 
     def cancel(self):
         """
@@ -123,12 +122,11 @@ class FTPSender(Sender):
             ftp.cwd(remote_folder)
             self.__sendfile(tfile, ftp)
         except Exception as e:
-            raise Exception('Could not create .cancel file on %s/%s' %
-                            (remote_host, remote_folder))
+            raise Exception(
+                f'Could not create .cancel file on {remote_host}/{remote_folder}')
         finally:
             shutil.rmtree(tempdir)
-        return ('%s file succesfully placed on %s %s'
-                % (self._cancelfile, remote_host, remote_folder))
+        return (f'{self._cancelfile} file succesfully placed on {remote_host} {remote_folder}')
 
     def _setup(self):
         """Initiate an ftp connection with properties passed to constructor.
@@ -158,7 +156,7 @@ class FTPSender(Sender):
             else:
                 ftp.login(user, password)
         except error_perm as msg:
-            raise Exception('Could not login to remote host %s' % (host))
+            raise Exception(f'Could not login to remote host {host}')
 
         # attempt to cd to remote directory
         try:
@@ -166,8 +164,7 @@ class FTPSender(Sender):
         except Exception as e:
             ftp.quit()
             raise Exception(
-                    'Could not navigate to directory "%s" on remote host %s'
-                    % (remote_folder, host))
+                f'Could not navigate to directory "{remote_folder}" on remote host {host}')
 
         return ftp
 
@@ -197,7 +194,7 @@ class FTPSender(Sender):
                         ftp.cwd(directory)
                     except error_perm as msg:
                         raise Exception(
-                            'Unable to create subdirectory %s.' % (directory))
+                            f'Unable to create subdirectory {directory}.')
 
     def _copy_file_with_path(self, ftp, local_file, remote_folder,
                              local_folder=None):

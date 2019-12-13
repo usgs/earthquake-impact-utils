@@ -178,11 +178,11 @@ class SCPClient(object):
                         not os.path.isdir(os.path.abspath(local_path)))
         if len(remote_path) > 1:
             if not os.path.exists(self._recv_dir):
-                raise SCPException("Local path '%s' does not exist" %
-                                   asunicode(self._recv_dir))
+                raise SCPException(
+                    f"Local path '{asunicode(self._recv_dir)}' does not exist")
             elif not os.path.isdir(self._recv_dir):
-                raise SCPException("Local path '%s' is not a directory" %
-                                   asunicode(self._recv_dir))
+                raise SCPException(
+                    f"Local path '{asunicode(self._recv_dir)}' is not a directory")
         rcsv = (b'', b' -r')[recursive]
         prsv = (b'', b' -p')[preserve_times]
         self.channel = self._open()
@@ -237,7 +237,8 @@ class SCPClient(object):
             # The protocol can't handle \n in the filename.
             # Quote them as the control sequence \^J for now,
             # which is how openssh handles it.
-            self.channel.sendall(("C%s %d " % (mode, size)).encode('ascii') +
+            send_size = int(size)
+            self.channel.sendall((f"C{mode} {send_size:d} ").encode('ascii') +
                                  basename.replace(b'\n', b'\\^J') + b"\n")
             self._recv_confirm()
             file_pos = 0
@@ -297,7 +298,7 @@ class SCPClient(object):
         basename = asbytes(os.path.basename(directory))
         if self.preserve_times:
             self._send_time(mtime, atime)
-        self.channel.sendall(('D%s 0 ' % mode).encode('ascii') +
+        self.channel.sendall((f'D{mode} 0 ').encode('ascii') +
                              basename.replace(b'\n', b'\\^J') + b'\n')
         self._recv_confirm()
         self._pushed += 1
@@ -308,7 +309,10 @@ class SCPClient(object):
         self._pushed -= 1
 
     def _send_time(self, mtime, atime):
-        self.channel.sendall(('T%d 0 %d 0\n' % (mtime, atime)).encode('ascii'))
+        send_mtime = int(mtime)
+        send_atime = int(atime)
+        self.channel.sendall(
+            (f'T{send_mtime:d} 0 {send_atime:d} 0\n').encode('ascii'))
         self._recv_confirm()
 
     def _recv_confirm(self):
@@ -450,7 +454,7 @@ class SCPClient(object):
             elif os.path.isdir(path):
                 os.chmod(path, mode)
             else:
-                raise SCPException('%s: Not a directory' % path)
+                raise SCPException(f'{path}: Not a directory')
             self._dirtimes[path] = (self._utime)
             self._utime = None
             self._recv_dir = path

@@ -44,11 +44,11 @@ def _move(cellstr, nrows, ncols):
         colidx = letters.index(col_str_idx)
         newcolidx = colidx + ncols
         newrowidx = rowidx + nrows
-        newcellstr = '%s%i' % (letters[newcolidx], newrowidx)
+        newcellstr = f'{letters[newcolidx]}{int(newrowidx):d}'
         return newcellstr
     except ValueError:
-        raise ValueError('Could not add %i columns to column %s.' %
-                         (ncols, col_str_idx))
+        raise ValueError(
+            f'Could not add {int(ncols):d} columns to column {col_str_idx}.')
 
 
 def read_excel(excelfile):
@@ -158,9 +158,8 @@ def read_excel(excelfile):
         df = df.reset_index(drop=True)
         top_headers = df.columns.levels[0]
     if not set(REQUIRED_COLUMNS).issubset(set(top_headers)):
-        fmt = 'Input Excel file must specify the following columns: %s.'
-        tpl = (str(REQUIRED_COLUMNS))
-        raise KeyError(fmt % tpl)
+        fmt = f'Input Excel file must specify the following columns: {(str(REQUIRED_COLUMNS))}.'
+        raise KeyError(fmt)
 
     # check if channel headers are valid
     channels = (set(top_headers) - set(REQUIRED_COLUMNS)) - set(OPTIONAL)
@@ -186,8 +185,8 @@ def read_excel(excelfile):
     else:
         valid = True
     if not valid:
-        raise KeyError('%s is not a valid channel grouping' %
-                       str(sorted(list(channels))))
+        raise KeyError(
+            f'{str(sorted(list(channels)))} is not a valid channel grouping')
 
     # make sure the empty cells are all nans or floats
     found = False
@@ -205,10 +204,10 @@ def read_excel(excelfile):
         df[channel] = channel_df
 
     if not found:
-        fmt = ('File must contain at least one of the following '
-               'data columns: %s')
-        tpl = (str(PGM_COLS + ['intensity']))
-        raise KeyError(fmt % tpl)
+        intensity_col = str(PGM_COLS + ['intensity'])
+        fmt = (f'File must contain at least one of the following '
+               f'data columns: {intensity_col}')
+        raise KeyError(fmt)
 
     return (df, reference)
 
@@ -263,7 +262,7 @@ def dataframe_to_xml(df, xmlfile, reference=None):
 
     create_time = int(time.time())
     stationlist = etree.SubElement(
-        root, 'stationlist', created='%i' % create_time)
+        root, 'stationlist', created=f'{int(create_time):d}')
     if reference is not None:
         stationlist.attrib['reference'] = reference
 
@@ -279,7 +278,7 @@ def dataframe_to_xml(df, xmlfile, reference=None):
 
         netid = tmprow['NETID'].strip()
         if not stationcode.startswith(netid):
-            stationcode = '%s.%s' % (netid, stationcode)
+            stationcode = f'{netid}.{stationcode}'
 
         # if this is a dataframe created by shakemap,
         # there will be multiple rows per station.
@@ -292,8 +291,8 @@ def dataframe_to_xml(df, xmlfile, reference=None):
         station = etree.SubElement(stationlist, 'station')
 
         station.attrib['code'] = stationcode
-        station.attrib['lat'] = '%.4f' % tmprow['LAT']
-        station.attrib['lon'] = '%.4f' % tmprow['LON']
+        station.attrib['lat'] = f"{tmprow['LAT']:.4f}"
+        station.attrib['lon'] = f"{tmprow['LON']:.4f}"
 
         # assign optional columns
         if 'NAME' in tmprow:
@@ -301,13 +300,13 @@ def dataframe_to_xml(df, xmlfile, reference=None):
         if 'NETID' in tmprow:
             station.attrib['netid'] = tmprow['NETID'].strip()
         if 'DISTANCE' in tmprow:
-            station.attrib['dist'] = '%.1f' % tmprow['DISTANCE']
+            station.attrib['dist'] = f"{tmprow['DISTANCE']:.1f}"
         if 'INTENSITY' in tmprow:
-            station.attrib['intensity'] = '%.1f' % tmprow['INTENSITY']
+            station.attrib['intensity'] = f"{tmprow['INTENSITY']:.1f}"
         if 'NRESP' in tmprow:
-            station.attrib['nresp'] = '%i' % tmprow['NRESP']
+            station.attrib['nresp'] = f"{int(tmprow['NRESP']):d}"
         if 'INTENSITY_STDDEV' in tmprow:
-            station.attrib['intensity_stddev'] = '%.2f' % tmprow['INTENSITY_STDDEV']
+            station.attrib['intensity_stddev'] = f"{tmprow['INTENSITY_STDDEV']:.2f}"
         if 'SOURCE' in tmprow:
             station.attrib['source'] = tmprow['SOURCE'].strip()
         if 'LOC' in tmprow:
@@ -315,7 +314,7 @@ def dataframe_to_xml(df, xmlfile, reference=None):
         if 'INSTTYPE' in tmprow:
             station.attrib['insttype'] = tmprow['INSTTYPE'].strip()
         if 'ELEV' in tmprow:
-            station.attrib['elev'] = '%.1f' % tmprow['ELEV']
+            station.attrib['elev'] = f"{tmprow['ELEV']:.1f}"
 
         if 'imt' not in tmprow.index:
             # sort channels by N,E,Z or H1,H2,Z
@@ -349,7 +348,7 @@ def dataframe_to_xml(df, xmlfile, reference=None):
                     # make an element with the old style name
                     pgm_el = etree.SubElement(component, pgm)
                     pgm_el.attrib['flag'] = '0'
-                    pgm_el.attrib['value'] = '%.4f' % row[channel][newpgm]
+                    pgm_el.attrib['value'] = f'{row[channel][newpgm]:.4f}'
             processed_stations.append(stationcode)
         else:
             # this file was created by a process that has imt/value columns
@@ -368,7 +367,7 @@ def dataframe_to_xml(df, xmlfile, reference=None):
                     value = channel_row['value']
 
                     pgm_el = etree.SubElement(component, pgm)
-                    pgm_el.attrib['value'] = '%.4f' % value
+                    pgm_el.attrib['value'] = f'{value:.4f}'
                     pgm_el.attrib['flag'] = str(channel_row['flag'])
 
             processed_stations.append(stationcode)

@@ -28,8 +28,8 @@ def _get_url_data(url, timeout=TIMEOUT):
                 fh.close()
                 return data
             except Exception as msg:
-                raise Exception('Error downloading data from url %s.  "%s".'
-                                % (url, msg))
+                raise Exception(
+                    f'Error downloading data from url {url}.  "{msg}".')
 
 
 class GeoServe(object):

@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 
 # stdlib imports
+import datetime
+from distutils import spawn
+import io
 import os.path
+import shutil
 import sys
 import tempfile
+import textwrap
+from unittest import mock
 import urllib.request
 import urllib.error
 import urllib.parse
 import zipfile
-import shutil
-import io
-from distutils import spawn
-import textwrap
-import datetime
-from unittest import mock
 
 # local imports
 from impactutils.transfer.pdlsender import PDLSender
@@ -48,6 +48,8 @@ def test_send():
         # error code, stdout, stderr
         mock_output.return_value = (True, b'stuff sent', b'')
         nfiles, send_msg = pdl.send()
+        assert nfiles == 1
+        assert '1 files sent successfully: resulting in output: "stuff sent"'
         assert 'stuff sent' in send_msg
 
 

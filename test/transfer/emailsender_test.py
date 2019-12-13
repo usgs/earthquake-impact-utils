@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # stdlib imports
+from impactutils.transfer.emailsender import EmailSender
 import os.path
 import sys
 import tempfile
@@ -12,8 +13,6 @@ homedir = os.path.dirname(os.path.abspath(__file__))  # where is this script?
 shakedir = os.path.abspath(os.path.join(homedir, '..', '..'))
 # put this at the front of the system path, ignoring any installed mapio stuff
 sys.path.insert(0, shakedir)
-
-from impactutils.transfer.emailsender import EmailSender
 
 
 def send_test(smtp_servers, sender, recipients):
@@ -57,7 +56,8 @@ def bcc_test(smtp_server, sender, max_bcc, recipients, primary_recipient):
              'primary_recipient': primary_recipient,
              'message': message}
     sender = EmailSender(properties=props)
-    sender.send()
+    sent = sender.send()
+    print(sent)
 
 
 if __name__ == '__main__':

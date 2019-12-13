@@ -151,8 +151,8 @@ class EmailSender(Sender):
         # into one file to be attached.
         try:
             address_tuples = _split_addresses(
-                    self._properties['recipients'], max_bcc,
-                    primary_recipient)
+                self._properties['recipients'], max_bcc,
+                primary_recipient)
 
             for address, bcc in address_tuples:
                 attachments = []
@@ -201,16 +201,17 @@ class EmailSender(Sender):
                 _send_email(sender, all_addresses, msgtxt, smtp_servers)
         except Exception as e:
             raise Exception(
-                'Could not send mail to %s with EmailSender. "%s"'
-                % (address, str(e)))
+                f'Could not send mail to {address} with EmailSender. "{str(e)}"')
         finally:
             shutil.rmtree(tempdir)
         nfiles = len(self._local_files)
         if self._local_directory is not None:
             nfiles += sum([len(files)
                            for r, d, files in os.walk(self._local_directory)])
-        fmt = '%i files successfully sent to %i recipients.'
-        return (nfiles, fmt % (nfiles, len(self._properties['recipients'])))
+        num_files = int(nfiles)
+        num_recipients = int(len(self._properties['recipients']))
+        fmt = f'{num_files:d} files successfully sent to {num_recipients:d} recipients.'
+        return (nfiles, fmt)
 
     def cancel(self, cancel_content=None):
         """Send a cancel message to list of recipients.
@@ -318,13 +319,13 @@ def _send_email(sender, address, msgtxt, smtp_servers):
                 {server: 'Connection to server failed (possible timeout)'})
 
     if not messageSent:
-        errstr = ('The message to %s was not sent. '
-                  'The server error messages are below:' % address)
+        errstr = (f'The message to {address} was not sent. '
+                  'The server error messages are below:')
         for errdict in errormsg:
             errstr = errstr + str(errdict)
         raise Exception(str(errstr))
 
-    print('Message sent to "%s" via SMTP server "%s"' % (address, servername))
+    print(f'Message sent to "{address}" via SMTP server "{servername}"')
     # if bcc is not None:
     #     print('Bcc: %s' % ','.join(bcc))
 

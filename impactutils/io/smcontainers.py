@@ -74,11 +74,11 @@ class HDFContainerBase(object):
 
     def _getGroup(self, base, groups):
         if base not in self._hdfobj:
-            raise LookupError('No %s in %s' % (base, self.getFileName()))
+            raise LookupError(f'No {base} in {self.getFileName()}')
         group = self._hdfobj[base]
         for gg in groups:
             if gg not in group:
-                raise LookupError('Group %s not in %s' % (gg, base))
+                raise LookupError(f'Group {gg} not in {base}')
             group = group[gg]
         return group
 
@@ -115,8 +115,7 @@ class HDFContainerBase(object):
         """
         dict_group = self._getGroup('dictionaries', groups)
         if name not in dict_group:
-            raise LookupError('Dictionary %s not in %s'
-                              % (name, self.getFileName()))
+            raise LookupError(f'Dictionary {name} not in {self.getFileName()}')
         mdataset = dict_group[name]
         outstring = mdataset[()].decode('utf-8')
         outdict = json.loads(outstring)
@@ -157,8 +156,8 @@ class HDFContainerBase(object):
         """
         dict_group = self._getGroup('dictionaries', groups)
         if name not in dict_group:
-            raise LookupError('dictionary %s not in %s'
-                              % (name, self._hdfobj.filename))
+            raise LookupError(
+                f'dictionary {name} not in {self._hdfobj.filename}')
         del dict_group[name]
         return
 
@@ -203,8 +202,8 @@ class HDFContainerBase(object):
         array_group = self._makeGroup('arrays', groups)
 
         if name in array_group:
-            raise LookupError('%s already exists in %s' %
-                              (name, self._hdfobj.filename))
+            raise LookupError(
+                f'{name} already exists in {self._hdfobj.filename}')
 
         dset = array_group.create_dataset(name, data=array,
                                           compression=compression)
@@ -228,8 +227,7 @@ class HDFContainerBase(object):
 
         array_group = self._getGroup('arrays', groups)
         if name not in array_group:
-            raise LookupError('Array %s not in %s'
-                              % (name, self.getFileName()))
+            raise LookupError(f'Array {name} not in {self.getFileName()}')
         dset = array_group[name]
         data = dset[()]
         metadata = {}
@@ -299,8 +297,7 @@ class HDFContainerBase(object):
         """
         string_group = self._getGroup('strings', groups)
         if name not in string_group:
-            raise LookupError('Dictionary %s not in %s'
-                              % (name, self.getFileName()))
+            raise LookupError(f'Dictionary {name} not in {self.getFileName()}')
         mdataset = string_group[name]
         outstring = mdataset[()].decode('utf-8')
         return outstring
@@ -330,8 +327,7 @@ class HDFContainerBase(object):
         """
         string_group = self._getGroup('strings', groups)
         if name not in string_group:
-            raise LookupError('string %s not in %s'
-                              % (name, self._hdfobj.filename))
+            raise LookupError(f'string {name} not in {self._hdfobj.filename}')
         del string_group[name]
 
 
@@ -483,16 +479,14 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
         """
 
         if datatype != 'points' and datatype != 'grid':
-            raise TypeError('Trying to set unknown data type: %s' %
-                            (datatype))
+            raise TypeError(f'Trying to set unknown data type: {datatype}')
         group_name = 'file_data_type'
 
         if group_name in self.getDictionaries():
             current_data_type = self.getDictionary([], group_name)['type']
             if current_data_type != datatype:
                 raise TypeError(
-                    'Trying to set data type to %s; file already type %s'
-                    % (datatype, current_data_type))
+                    f'Trying to set data type to {datatype}; file already type {current_data_type}')
             #
             # Data type is already set; don't have to do anything
             #
@@ -537,7 +531,7 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
             dict: Metadata dictionary.
         """
         if 'info.json' not in self.getDictionaries():
-            raise LookupError('No metadata in %s' % (self.getFileName()))
+            raise LookupError(f'No metadata in {self.getFileName()}')
         return self.getDictionary([], 'info.json')
 
     def setIMTGrids(self, imt_name, imt_mean, mean_metadata,
@@ -779,8 +773,8 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
         """
         if 'arrays' not in self._hdfobj or \
            'imts' not in self._hdfobj['arrays']:
-            raise LookupError('No IMTs stored in HDF file %s'
-                              % (self.getFileName()))
+            raise LookupError(
+                f'No IMTs stored in HDF file {self.getFileName()}')
         components = self.getComponents(imt_name)
         for comp in components:
             del self._hdfobj['arrays']['imts'][comp][imt_name]

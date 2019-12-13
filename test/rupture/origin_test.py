@@ -46,7 +46,7 @@ mech="" />"""
                 'lat': 30.9858,
                 'depth': 19.0}
     for key in testdict.keys():
-        value = eval('origin.%s' % key)
+        value = eval(f'origin.{key}')
         if type(value) is str:
             assert testdict[key] == value
         if type(value) is float:
@@ -187,6 +187,10 @@ reference="Smith, et al. (2019)"
     xmlfile = tfile.name
     tfile.close()
     res = write_event_file(event, xmlfile)
+    with open(xmlfile, 'r') as f:
+        fstr = f.read()
+    target_str = ('<earthquake id="us2000ryan" netid="us" network="USGS Network" lat="30.9858" lon="103.3639" depth="19.0" mag="7.9" time="2008-05-12T06:28:01Z" locstring="EASTERN SICHUAN, CHINA" mech="RS" reference="Smith, et al. (2019)" productcode="us2000ryan" event_type="ACTUAL"/>')
+    assert target_str in fstr
     if res is not None:
         print(res)
         assert False

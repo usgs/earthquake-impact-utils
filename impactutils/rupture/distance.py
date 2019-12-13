@@ -86,7 +86,7 @@ class Distance(object):
             if not isinstance(ig, GMPE):
                 raise TypeError(
                     'getDistanceContext() cannot work with objects of '
-                    'type "%s"' % type(ig))
+                    f'type "{type(ig)}"')
             requires = requires | ig.REQUIRES_DISTANCES
 
         context = base.DistancesContext()

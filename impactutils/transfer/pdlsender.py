@@ -118,12 +118,12 @@ class PDLSender(Sender):
             cmd = cmd.replace('[' + propkey.upper() + ']', propvalue)
         cmd = cmd.replace('[STATUS]', 'UPDATE')
         if self._local_files:
-            cmd = cmd.replace('[FILE]', '--file=%s' % (self._local_files[0]))
+            cmd = cmd.replace('[FILE]', f'--file={self._local_files[0]}')
         else:
             cmd = cmd.replace('[FILE]', '')
         if self._local_directory:
-            cmd = cmd.replace('[DIRECTORY]', '--directory=%s' %
-                              (self._local_directory))
+            cmd = cmd.replace(
+                '[DIRECTORY]', f'--directory={self._local_directory}')
         else:
             cmd = cmd.replace('[DIRECTORY]', '')
 
@@ -132,21 +132,19 @@ class PDLSender(Sender):
             prop_nuggets = []
             for propkey, propvalue in self._product_properties.items():
                 if isinstance(propvalue, float):
-                    prop_nuggets.append('--property-%s=%.4f' %
-                                        (propkey, propvalue))
+                    prop_nuggets.append(
+                        f'--property-{propkey}={propvalue:.4f}')
                 elif isinstance(propvalue, int):
-                    prop_nuggets.append('--property-%s=%i' %
-                                        (propkey, propvalue))
+                    prop_nuggets.append(
+                        f'--property-{propkey}={int(propvalue):d}')
                 elif isinstance(propvalue, datetime.datetime):
                     prop_nuggets.append(
-                        '--property-%s=%s'
-                        % (propkey, propvalue.strftime(DATE_TIME_FMT)[0:23]))
+                        f'--property-{propkey}={propvalue.strftime(DATE_TIME_FMT)[0:23]}')
                 elif isinstance(propvalue, str):
-                    prop_nuggets.append('--property-%s="%s"' %
-                                        (propkey, propvalue))
+                    prop_nuggets.append(f'--property-{propkey}="{propvalue}"')
                 else:
-                    prop_nuggets.append('--property-%s=%s' %
-                                        (propkey, str(propvalue)))
+                    prop_nuggets.append(
+                        f'--property-{propkey}={str(propvalue)}')
             cmd = cmd.replace('[PRODUCT_PROPERTIES]', ' '.join(prop_nuggets))
         else:
             cmd = cmd.replace('[PRODUCT_PROPERTIES]', '')
@@ -162,9 +160,7 @@ class PDLSender(Sender):
                 if propkey in self._properties:
                     if propkey == 'eventtime':
                         opt_nuggets.append(
-                            '--%s=%sZ'
-                            % (propkey,
-                               self._properties[propkey].strftime(DATE_TIME_FMT)[0:23]))
+                            f'--{propkey}={self._properties[propkey].strftime(DATE_TIME_FMT)[0:23]}Z')
                     else:
                         fmt = '--%s=' + self._optional_properties_fmt[propkey]
                         opt_nuggets.append(
@@ -176,9 +172,8 @@ class PDLSender(Sender):
         # call PDL on the command line
         retcode, stdout, stderr = get_command_output(cmd)
         if not retcode:
-            fmt = 'Could not send product "%s" due to error "%s"'
-            tpl = (retcode, stdout + stderr)
-            raise Exception(fmt % tpl)
+            fmt = f'Could not send product "{retcode}" due to error "{stdout + stderr}"'
+            raise Exception(fmt)
 
         # return the number of files we just sent
         nfiles = 0
@@ -187,9 +182,9 @@ class PDLSender(Sender):
         if self._local_directory:
             nfiles += sum([len(files)
                            for r, d, files in os.walk(self._local_directory)])
-
-        msg = '%i files sent successfully: resulting in output: "%s"' % (
-            nfiles, stdout.decode('utf-8'))
+        numfiles = int(nfiles)
+        error_msg = stdout.decode('utf-8')
+        msg = f'{numfiles:d} files sent successfully: resulting in output: "{error_msg}"'
         return (nfiles, msg)
 
     def cancel(self, cancel_content=None):
@@ -211,27 +206,22 @@ class PDLSender(Sender):
         prop_nuggets = []
         for propkey, propvalue in self._properties.items():
             if isinstance(propvalue, float):
-                prop_nuggets.append('--property-%s=%.4f' %
-                                    (propkey, propvalue))
+                prop_nuggets.append(f'--property-{propkey}={propvalue:.4f}')
             elif isinstance(propvalue, int):
-                prop_nuggets.append('--property-%s=%i' % (propkey, propvalue))
+                prop_nuggets.append(f'--property-{propkey}={int(propvalue):d}')
             elif isinstance(propvalue, datetime.datetime):
                 prop_nuggets.append(
-                    '--property-%s=%s'
-                    % (propkey, propvalue.strftime(DATE_TIME_FMT)[0:23]))
+                    f'--property-{propkey}={propvalue.strftime(DATE_TIME_FMT)[0:23]}')
             elif isinstance(propvalue, str):
-                prop_nuggets.append('--property-%s="%s"' %
-                                    (propkey, propvalue))
+                prop_nuggets.append(f'--property-{propkey}="{propvalue}"')
             else:
-                prop_nuggets.append('--property-%s=%s' %
-                                    (propkey, str(propvalue)))
+                prop_nuggets.append(f'--property-{propkey}={str(propvalue)}')
 
         cmd = cmd.replace('[PRODUCT_PROPERTIES]', ' '.join(prop_nuggets))
 
         retcode, stdout, stderr = get_command_output(cmd)
         if not retcode:
-            fmt = 'Could not delete product "%s" due to error "%s"'
-            tpl = (retcode, stdout + stderr)
-            raise Exception(fmt % tpl)
+            fmt = f'Could not delete product "{retcode}" due to error "{stdout + stderr}"'
+            raise Exception(fmt)
 
         return stdout
