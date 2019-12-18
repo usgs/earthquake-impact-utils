@@ -1,20 +1,23 @@
 # stdlib imports
+from collections import OrderedDict
 from datetime import datetime, timedelta
-import os.path
 from functools import partial
-import zipfile
-from urllib import request
-from urllib import parse
+import json
+import os.path
+from urllib import parse, request
 import shutil
+import zipfile
 
 # third party imports
-from shapely.geometry import shape, Point
-from fiona import collection
-import pyproj
-import numpy as np
-from shapely.ops import transform
-import pytz
 import bs4
+from fiona import collection
+import numpy as np
+from PIL import Image
+import pyproj
+import pytz
+from shapely.geometry import shape, Point
+from shapely.ops import transform
+
 
 TIMEFMT = '%Y-%m-%dT%H:%M:%S'
 TIMEOUT = 30  # number of seconds to wait for urlopen requests
@@ -275,3 +278,211 @@ class LocalTime(object):
 
     def __del__(self):
         self._input.close()
+
+
+class TimeConversion(object):
+    def __init__(self, tiff=None, raster_shape=None, extents=None,
+                 resolution=None, timezone_coding=None):
+        """Creates an instance of the TimeConversion object, which
+        makes conversions betwen local and UTC time.
+
+        Args:
+            tiff (str): Path to a tiff file. The default is a (resolution = 0.02 degree)
+                rasterization of the shapefile found here.
+                https://github.com/evansiroky/timezone-boundary-builder/releases.
+                The default tiff (combined-raster-with-oceans002.tif)
+                is located under the data directory.
+            raster_shape (tuple): The shape of the raster array. If a tiff other than
+                the default is specified, then the shape must also be specified.
+                The default is the shape of the default tiff (9000, 18000).
+            resolution (tuple): Resolution in degrees (longitude, latitude).
+                If a tiff other than the default is specified, then the resolution
+                must also be specified. The default is the resolution of the
+                default tiff in degrees (0.02, 0.02).
+            extents (dict): Dictionary representing the extent of the raster.
+                If a tiff other than the default is specified, then the shape
+                must also be specified. Default raster extent example:
+                    {
+                        "Upper Left": (-180., 83.),
+                        "Lower Left": (-180., -80.),
+                        "Upper Right": (180., 83.),
+                        "Lower Right": (180., -80.)
+                    }
+            timezone_coding (string): Path to a json file with codes that correspond
+                to the integer values in the raster. Example:
+                    {
+                        "Africa/Abidjan": 0,
+                        "Africa/Accra": 1,
+                        "Africa/Addis_Ababa": 2,
+                        "Africa/Algiers": 3,
+                        "Africa/Asmara": 4,
+                        "Africa/Bamako": 5,
+                    }
+                If a tiff other than the default is specified, then the country
+                coding file must also be specified. The default is the coding
+                file located in the data directory: country-time-codes.json
+        """
+        if tiff is None:
+            homedir = os.path.dirname(os.path.abspath(__file__))
+            data_dir = os.path.abspath(
+                os.path.join(homedir, '..', 'data'))
+            combined_tiff = os.path.join(data_dir,
+                                         'combined-raster-with-oceans002.tif')
+            timezone_coding = os.path.join(data_dir,
+                                           'country-time-codes.json')
+            with open(timezone_coding, 'r') as json_file:
+                self._timezones = json.load(
+                    json_file, object_pairs_hook=OrderedDict)
+            self._filepath = combined_tiff
+            self._shape = (8150, 18000)
+            self._resolution = (0.02, 0.02)
+            self._extents = {
+                "Upper Left": (-180., 83.),
+                "Lower Left": (-180., -80.),
+                "Upper Right": (180., 83.),
+                "Lower Right": (180., -80.)
+            }
+        else:
+            if raster_shape is None:
+                raise Exception('For a custom tiff, the shape of the array '
+                                'must be specified as a tuple. Example: (9000, 18000).')
+            if extents is None:
+                raise Exception('For a custom tiff, the extents '
+                                'must be specified.')
+            if resolution is None:
+                raise Exception('For a custom tiff, the resolution of the tiff '
+                                'must be specified as a tuple. Example: (0.02, 0.02).')
+            if timezone_coding is None:
+                raise Exception('For a custom tiff, the path to the country code '
+                                'file must be specified.')
+            self._filepath = tiff
+            self._shape = raster_shape
+            self._resolution = resolution
+            self._extents = extents
+            with open(timezone_coding, 'r') as json_file:
+                self._timezones = json.load(
+                    json_file, object_pairs_hook=OrderedDict)
+        self._raster = self.read_tiff()
+
+    def get_timezone_code(self, lat, lon, rounding_method='floor'):
+        """
+        Gets the timezone code for a given latitude/longitude.
+
+        Args:
+            lat (float): Latitude.
+            lon (float): Longitude.
+            rounding_method (string): The rounding method to use, when finding
+                the raster cell. The passed string must be one of: 'floor',
+                'ceil', 'round'.
+
+        Returns:
+            String timezone code.
+
+        Note:
+            This method assumes a symmetrical raster. If the raster extent is
+            less than the
+        """
+        # Validate rounding option
+        rounding_option = ['floor, ceil, round']
+        if rounding_method not in ['floor', 'ceil', 'round']:
+            raise Exception(f"{rounding_method} is not a valid 'rounding_method'."
+                            f" It must be one of {rounding_option}.")
+        # Get the extents of the raster
+        min_lon = self._extents['Lower Left'][0]
+        max_lon = self._extents['Lower Right'][0]
+        min_lat = self._extents['Lower Left'][1]
+        max_lat = self._extents['Upper Left'][1]
+
+        # Account for rasters with limited extent
+        # If the value is less than or greater than the extent, then set it to
+        # the closest boundary
+        if lon > max_lon:
+            lon = max_lon
+        elif lon < min_lon:
+            lon = min_lon
+        if lat > max_lat:
+            lat = max_lat
+        elif lat < min_lat:
+            lat = min_lat
+
+        # Set the resolution in x (longitude) and y (latitude)
+        resx = self._resolution[0]
+        resy = self._resolution[1]
+        if max_lon < min_lon and lon < min_lon:
+            lon += 360
+        col = (lon - min_lon) / resx
+        row = (max_lat - lat) / resy
+
+        # Round to get the row/col index of the timezone code
+        if rounding_method == 'round':
+            row = np.round(row).astype(int)
+            col = np.round(col).astype(int)
+        elif rounding_method == 'floor':
+            row = np.floor(row).astype(int)
+            col = np.floor(col).astype(int)
+        elif rounding_method == 'ceil':
+            row = np.ceil(row).astype(int)
+            col = np.ceil(col).astype(int)
+        raster_value = self._raster[row][col]
+        # Find the timezone code
+        keys = list(self._timezones.keys())
+        values = list(self._timezones.values())
+        code = keys[np.argwhere(values == raster_value)[0][0]]
+        return code
+
+    def read_tiff(self):
+        """
+        Reads a tiff file.
+
+        Returns:
+            ndarray of the raster.
+        """
+        image = Image.open(self._filepath)
+        image_array = np.asarray(image)
+        # Reshape to reflect dimensions of the map
+        raster = image_array.reshape(self._shape)
+        return raster
+
+    def to_localtime(self, utctime, lat, lon, rounding_method='floor'):
+        """
+        Converts UTC time to local time.
+
+        Args:
+            utctime (datetime): Datetime object in utc time.
+            lat (float): Latitude
+            lon (float): Longitude.
+            rounding_method (string): The rounding method to use, when finding
+                the raster cell. The passed string must be one of: 'floor',
+                'ceil', 'round'.
+
+        Returns:
+            Datetime object for the local time.
+        """
+        code = self.get_timezone_code(lat, lon)
+        timezone = pytz.timezone(code)
+        local_time = pytz.utc.localize(utctime).astimezone(timezone)
+        return local_time
+
+    def to_utctime(self, localtime, lat, lon, rounding_method='floor'):
+        """
+        Converts local time to UTC time.
+
+        Args:
+            localtime (datetime): Datetime object without any associated timezone.
+            lat (float): Latitude
+            lon (float): Longitude.
+            rounding_method (string): The rounding method to use, when finding
+                the raster cell. The passed string must be one of: 'floor',
+                'ceil', 'round'.
+
+        Returns:
+            Datetime object for the UTC time.
+        """
+        code = self.get_timezone_code(lat, lon)
+        timezone = pytz.timezone(code)
+        # Set the local timezone information
+        local = timezone.localize(localtime)
+        # Convert to UTC
+        utc = pytz.utc
+        utctime = local.astimezone(utc)
+        return utctime
