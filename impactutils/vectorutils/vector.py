@@ -75,7 +75,7 @@ class Vector(object):
             TypeError: If other is not a Vector object.
         """
         if not isinstance(other, Vector):
-            raise TypeError("Cannot add Vector and %s objects" % type(other))
+            raise TypeError(f"Cannot add Vector and {type(other)} objects")
         return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
 
     def __sub__(self, other):
@@ -93,8 +93,7 @@ class Vector(object):
         """
         if not isinstance(other, Vector):
             raise TypeError(
-                "Cannot subtract Vector and %s objects" %
-                type(other))
+                f"Cannot subtract Vector and {type(other)} objects")
         return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
 
     def __mul__(self, length):
@@ -114,8 +113,7 @@ class Vector(object):
             length = float(length)
         except ValueError:
             raise TypeError(
-                "Cannot multiply Vector and %s objects" %
-                type(length))
+                f"Cannot multiply Vector and {type(length)} objects")
         return Vector(self.x * length, self.y * length, self.z * length)
 
     def __rmul__(self, length):
@@ -135,8 +133,7 @@ class Vector(object):
             length = float(length)
         except ValueError:
             raise TypeError(
-                "Cannot multiply Vector and %s objects" %
-                type(length))
+                f"Cannot multiply Vector and {type(length)} objects")
         return Vector(self.x * length, self.y * length, self.z * length)
 
     def __eq__(self, other):
@@ -154,8 +151,7 @@ class Vector(object):
         """
         if not isinstance(other, Vector):
             raise TypeError(
-                "Cannot compare Vector and %s objects" %
-                type(other))
+                f"Cannot compare Vector and {type(other)} objects")
         if other.x == self.x and other.y == self.y and other.z == self.z:
             return True
         return False
@@ -175,8 +171,7 @@ class Vector(object):
         """
         if not isinstance(other, Vector):
             raise TypeError(
-                "Cannot calculate distance between Vector and %s objects" %
-                type(other))
+                f"Cannot calculate distance between Vector and {type(other)} objects")
         return np.sqrt((self.x - other.x)**2 + (self.y - other.y)
                        ** 2 + (self.z - other.z)**2)
 
@@ -195,8 +190,7 @@ class Vector(object):
         """
         if not isinstance(other, Vector):
             raise TypeError(
-                "Cannot calculate cross product between Vector and %s objects"
-                % type(other))
+                f"Cannot calculate cross product between Vector and {type(other)} objects")
         cp = np.cross(self.getArray(), other.getArray())
         return Vector(cp[0], cp[1], cp[2])
 
@@ -215,8 +209,7 @@ class Vector(object):
         """
         if not isinstance(other, Vector):
             raise TypeError(
-                "Cannot calculate cross product between Vector and %s objects"
-                % type(other))
+                f"Cannot calculate cross product between Vector and {type(other)} objects")
         dp = np.dot(self.getArray(), other.getArray())
         return dp
 
@@ -268,4 +261,4 @@ class Vector(object):
         """
         String representation of Vector.
         """
-        return '<x=%.4f,y=%.4f,z=%.4f>' % (self.x, self.y, self.z)
+        return f'<x={self.x:.4f},y={self.y:.4f},z={self.z:.4f}>'

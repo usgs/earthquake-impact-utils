@@ -20,6 +20,12 @@ def test():
     a = vector.Vector(1, 1, 1)
     b = vector.Vector(2, 2, 2)
     c = vector.Vector(1, 1, 1)
+    a_target = "<bound method Vector.__repr__ of <x=1.0000,y=1.0000,z=1.0000>>"
+    b_target = "<bound method Vector.__repr__ of <x=2.0000,y=2.0000,z=2.0000>>"
+    c_target = "<bound method Vector.__repr__ of <x=1.0000,y=1.0000,z=1.0000>>"
+    assert str(a.__repr__) == a_target
+    assert str(b.__repr__) == b_target
+    assert str(c.__repr__) == c_target
     np.testing.assert_almost_equal(a.getArray(), np.array([1, 1, 1]))
     assert a == c
     alen = a.mag()
@@ -33,8 +39,8 @@ def test():
     assert adotb == 6
     aplusb = a + b
     np.testing.assert_almost_equal(
-            aplusb.getArray(),
-            np.array([3, 3, 3]))
+        aplusb.getArray(),
+        np.array([3, 3, 3]))
 
     pt = point.Point(-122.1, 36.2, 0)
     ptv = vector.Vector.fromPoint(pt)

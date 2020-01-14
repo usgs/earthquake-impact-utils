@@ -7,14 +7,14 @@ import urllib.request
 import urllib.error
 import urllib.parse
 
+# local imports
+from impactutils.transfer.ftpsender import FTPSender
+
 # hack the path so that I can debug these functions if I need to
 homedir = os.path.dirname(os.path.abspath(__file__))  # where is this script?
 shakedir = os.path.abspath(os.path.join(homedir, '..', '..'))
 # put this at the front of the system path, ignoring any installed mapio stuff
 sys.path.insert(0, shakedir)
-
-# local imports
-from impactutils.transfer.ftpsender import FTPSender
 
 
 def _test_send_file(properties):
@@ -26,23 +26,19 @@ def _test_send_file(properties):
         sender = FTPSender(properties=properties, local_files=[
                            thisfile], cancelfile=cancelfile)
         nfiles, send_msg = sender.send()
-        url = 'ftp://%s%s/%s' % (properties['remote_host'],
-                                 properties['remote_directory'], thisfilename)
+        url = f"ftp://{properties['remote_host']}{properties['remote_directory']}/{thisfilename}"
         fh = urllib.request.urlopen(url)
         fh.close()
-        print('Successfully sent local file %s' % thisfile)
+        print(f'Successfully sent local file {thisfile}')
         cancel_msg = sender.cancel()
-        url = 'ftp://%s%s/%s' % (properties['remote_host'],
-                                 properties['remote_directory'], cancelfile)
+        url = f"ftp://{properties['remote_host']}{properties['remote_directory']}/{cancelfile}"
         fh = urllib.request.urlopen(url)
         fh.close()
-        print('Successfully sent cancel message %s' % thispath)
+        print(f'Successfully sent cancel message {thispath}')
 
     except Exception as obj:
-        fmt = 'Test failed - you may have a file called %s on host %s and directory %s'
-        tpl = (thisfile, properties['remote_host'],
-               properties['remote_directory'])
-        raise Exception(fmt % tpl)
+        fmt = f"Test failed - you may have a file called {thisfile} on host {properties['remote_host']} and directory {properties['remote_directory']}"
+        raise Exception(fmt)
     print('Passed sending single file.')
 
 
@@ -59,24 +55,21 @@ def _test_send_folder(properties):
         sender = FTPSender(properties=properties,
                            local_directory=thispath, cancelfile=cancelfile)
         nfiles, send_msg = sender.send()
-        url = 'ftp://%s%s' % (properties['remote_host'],
-                              properties['remote_directory'])
+        url = f"ftp://{properties['remote_host']}{properties['remote_directory']}"
 
         # this should succeed
         fh = urllib.request.urlopen(url)
         fh.close()
-        print('Successfully sent local folder %s' % thispath)
+        print(f'Successfully sent local folder {thispath}')
         cancel_msg = sender.cancel()
-        url = 'ftp://%s%s/%s' % (properties['remote_host'],
-                                 properties['remote_directory'], cancelfile)
+        url = f"ftp://{properties['remote_host']}{properties['remote_directory']}/{cancelfile}"
         fh = urllib.request.urlopen(url)
         fh.close()
-        print('Successfully sent cancel message %s' % thispath)
+        print(f'Successfully sent cancel message {thispath}')
 
     except Exception as obj:
-        fmt = 'Test failed - you may have a file called %s on host %s and directory %s'
-        tpl = (thisfile, properties['remote_host'], ['remote_directory'])
-        raise Exception(fmt % tpl)
+        fmt = f"Test failed - you may have a file called {thisfile} on host {properties['remote_host']} and directory {['remote_directory']}"
+        raise Exception(fmt)
     print('Passed sending folder.')
 
 

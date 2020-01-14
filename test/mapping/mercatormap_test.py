@@ -40,7 +40,7 @@ def test_mmap(outfile=None, bounds=None):
 #    mmap.drawCities(shadow=True)
 #    if outfile:
 #        plt.savefig(outfile)
-#        print('Figure saved to %s' % outfile)
+#        print(f"Figure saved to {outfile}")
 #    return
 
 

@@ -162,7 +162,8 @@ class ElapsedTime(object):
             return self.getTimeStr(etimedict['minutes'],
                                    etimedict['seconds'], 'minute')
         if etimedict['seconds'] != 1:
-            return '%i seconds' % (etimedict['seconds'])
+            seconds_int = int(etimedict['seconds'])
+            return f'{seconds_int:d} seconds'
         else:
             return '1 second'
 
@@ -180,7 +181,7 @@ class ElapsedTime(object):
         """
         periods = ['second', 'minute', 'hour', 'day', 'week', 'month', 'year']
         if unit not in periods:
-            raise Exception('Unknown input units %s' % unit)
+            raise Exception(f'Unknown input units {unit}')
 
         bigunit = periods[periods.index(unit)]
         smallunit = periods[periods.index(unit) - 1]
@@ -188,7 +189,7 @@ class ElapsedTime(object):
             bigunit = bigunit + 's'
         if smalltime != 1:
             smallunit = smallunit + 's'
-        return '%s %s, %i %s' % (bigtime, bigunit, smalltime, smallunit)
+        return f'{bigtime} {bigunit}, {int(smalltime):d} {smallunit}'
 
 
 class LocalTime(object):
@@ -218,8 +219,8 @@ class LocalTime(object):
             xmin, ymin, xmax, ymax = zonepoly.bounds
             clon = (xmin + xmax) / 2
             utmzone = _get_utm_zone(clon)
-            utmstr = ('+proj=utm +zone=%i +ellps=WGS84 +datum=WGS84 '
-                      '+units=m +no_defs' % utmzone)
+            utmstr = (f'+proj=utm +zone={int(utmzone):d} +ellps=WGS84 +datum=WGS84 '
+                      '+units=m +no_defs')
             geostr = '+proj=longlat +datum=WGS84 +ellps=WGS84'
             projection = partial(
                 pyproj.transform,

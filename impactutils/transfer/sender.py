@@ -48,7 +48,7 @@ class Sender(object):
         self._properties = properties
         for prop in self._required_properties:
             if prop not in self._properties:
-                raise Exception('Required property "%s" not specified.' % prop)
+                raise Exception(f'Required property "{prop}" not specified.')
 
         if local_files is not None:
             if not isinstance(local_files, list):
@@ -56,12 +56,12 @@ class Sender(object):
             for f in local_files:
                 if not os.path.isfile(f):
                     raise Exception(
-                        'Input file %s could not be found' % f)
+                        f'Input file {f} could not be found')
 
         if local_directory is not None:
             if not os.path.isdir(local_directory):
                 raise Exception(
-                    'Input directory %s could not be found' % directory)
+                    f'Input directory {directory} could not be found')
         if local_files is not None:
             self._local_files = local_files
         else:
@@ -80,13 +80,13 @@ class Sender(object):
     def addFiles(self, local_files):
         for f in files:
             if not os.path.isfile(f):
-                raise Exception('Input file %s could not be found' % f)
+                raise Exception(f'Input file {f} could not be found')
         self._local_files += local_files
 
     def changeDirectory(self, local_directory, directory_alias=None):
         if not os.path.isdir(local_directory):
             raise Exception(
-                'Input directory %s could not be found' % directory)
+                f'Input directory {directory} could not be found')
         self._local_directory = local_directory
         self._directory_alias = directory_alias
 

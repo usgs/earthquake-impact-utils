@@ -283,7 +283,8 @@ def draw_scale(ax, pos='ll', padx=0.1, pady=0.1, font_size=None, units='km',
             color = 'black'
         else:
             color = 'white'
-            scale_tick = '%i' % (i * (bar_length / divisions))
+            tick_i = int(i * (bar_length / divisions))
+            scale_tick = f'{tick_i:d}'
             if is_div_even or i == 0:
                 # if we have an even number of divisions, draw every other
                 # tick mark
@@ -294,13 +295,13 @@ def draw_scale(ax, pos='ll', padx=0.1, pady=0.1, font_size=None, units='km',
                         'k', zorder=zorder)
                 # draw the tick label
                 ax.text(left_edge, bar_bottom - (tick_height + gap_height),
-                        '%s' % scale_tick, ha='center', zorder=zorder,
+                        f'{scale_tick}', ha='center', zorder=zorder,
                         va='top', fontsize=font_size)
 
         ax.fill(barx, recty, color, zorder=zorder)
     # draw the last tick mark and number
     ax.text(bar_left + bar_length_data, bar_bottom - (tick_height + gap_height),
-            '%i' % bar_length, ha='center', zorder=zorder, va='top',
+            f'{int(bar_length):d}', ha='center', zorder=zorder, va='top',
             fontsize=font_size)
     left = bar_left + bar_length_data
     bottom = bar_bottom - tick_height

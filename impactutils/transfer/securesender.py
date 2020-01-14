@@ -71,8 +71,8 @@ class SecureSender(Sender):
         # make sure the remote system has directory or it can be created.
         res = self._make_remote_folder(scp, ssh, remote_folder)
         if not res:
-            msg = 'Unable to create remote folder %s on host %s'
-            raise Exception(msg % (remote_folder, remote_host))
+            msg = f'Unable to create remote folder {remote_folder} on host {remote_host}'
+            raise Exception(msg)
 
         # do the copying
         try:
@@ -93,8 +93,7 @@ class SecureSender(Sender):
         except Exception as obj:
             rhost = self._properties['remote_host']
             raise Exception(
-                'Could not send files to remote host %s: "%s"'
-                % (rhost, str(obj)))
+                f'Could not send files to remote host {rhost}: "{str(obj)}"')
 
         nfiles += len(self._local_files)
         if self._local_directory is not None:
@@ -102,8 +101,7 @@ class SecureSender(Sender):
                            for r, d, files in os.walk(self._local_directory)])
         scp.close()
         ssh.close()
-        return (nfiles, '%i files sent to remote host %s'
-                % (nfiles, remote_host))
+        return (nfiles, f'{int(nfiles):d} files sent to remote host {remote_host}')
 
     def cancel(self, cancel_content=None):
         """
@@ -121,19 +119,17 @@ class SecureSender(Sender):
         remote_host = self._properties['remote_host']
         ssh = self._connect()
         cancelfile = os.path.join(remote_folder, self._cancelfile)
-        echo_cmd = 'echo %s > %s' % (cancel_content, cancelfile)
+        echo_cmd = f'echo {cancel_content} > {cancelfile}'
         stdin, stdout, stderr1 = ssh.exec_command(echo_cmd)
-        chk_cmd = '[ -e %s ];echo $?' % cancelfile
+        chk_cmd = f'[ -e {cancelfile} ];echo $?'
         stdin, stdout, stderr = ssh.exec_command(chk_cmd)
         exists = not int(stdout.read().decode('utf-8').strip())
         if not exists:
-            fmt = 'Could not create %s file on remote_host %s due to error: %s'
             err = stderr1.read().decode('utf-8').strip()
-            tpl = (cancelfile, remote_host, err)
-            raise Exception(fmt % err)
+            fmt = f'Could not create {cancelfile} file on remote_host {remote_host} due to error: {err}'
+            raise Exception(fmt)
 
-        return ('A .cancel file has been placed in remote directory %s.'
-                % remote_folder)
+        return (f'A .cancel file has been placed in remote directory {remote_folder}.')
 
     def _connect(self):
         """Initiate an ssh connection with properties passed to constructor.
@@ -153,8 +149,8 @@ class SecureSender(Sender):
                         key_filename=self._properties['private_key'],
                         compress=True)
         except Exception as obj:
-            raise Exception('Could not connect with private key file %s' %
-                            self._properties['private_key'])
+            raise Exception(
+                f"Could not connect with private key file {self._properties['private_key']}")
         return ssh
 
     def _copy_file_with_path(self, scp, ssh, local_file, remote_folder,
@@ -200,19 +196,18 @@ class SecureSender(Sender):
             if not isdir:
                 res = self._make_remote_folder(scp, ssh, root)
                 if not res:
-                    tpl = (local_file, remote_folder, remote_host)
-                    fmt = ('Could not copy local file %s to folder %s '
-                           'on host %s')
-                    raise Exception(fmt % tpl)
+                    fmt = (f'Could not copy local file {local_file} to folder {remote_folder} '
+                           f'on host {remote_host}')
+                    raise Exception(fmt)
 
         else:
             root, tfile = os.path.split(local_file)
             remote_file = os.path.join(remote_folder, tfile)
         remote_tmp_file = remote_file + '.tmp_' + \
             datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
-        print('Copying %s...' % local_file)
+        print(f'Copying {local_file}...')
         scp.put(local_file, remote_tmp_file)
-        rename_cmd = 'mv %s %s' % (remote_tmp_file, remote_file)
+        rename_cmd = f'mv {remote_tmp_file} {remote_file}'
         stdin, stdout, stderr = ssh.exec_command(rename_cmd)
 
     def _check_remote_folder(self, ssh, remote_folder):
@@ -226,10 +221,10 @@ class SecureSender(Sender):
             Tuple with two booleans -- (does a file or directory of this name
             exist, is it a directory?)
         """
-        chk_cmd1 = '[ -e %s ];echo $?' % remote_folder
+        chk_cmd1 = f'[ -e {remote_folder} ];echo $?'
         stdin, stdout, stderr = ssh.exec_command(chk_cmd1)
         exists = not int(stdout.read().decode('utf-8').strip())
-        chk_cmd2 = '[ -d %s ];echo $?' % remote_folder
+        chk_cmd2 = f'[ -d {remote_folder} ];echo $?'
         stdin, stdout, stderr = ssh.exec_command(chk_cmd2)
         isdir = not int(stdout.read().decode('utf-8').strip())
         return (exists, isdir)
@@ -246,15 +241,15 @@ class SecureSender(Sender):
             Boolean indicating success or failure.
         """
         exists, isdir = self._check_remote_folder(ssh, remote_folder)
-        chk_cmd2 = '[ -d %s ];echo $?' % remote_folder
+        chk_cmd2 = f'[ -d {remote_folder} ];echo $?'
         if not isdir:
             if exists:
-                rm_cmd = 'rm %s' % remote_folder
+                rm_cmd = f'rm {remote_folder}'
                 stdin, stdout, stderr = ssh.exec_command(rm_cmd)
                 stdin, stdout, stderr = ssh.exec_command(chk_cmd1)
                 exists = not int(stdout.read().decode('utf-8').strip())
             if not exists:
-                mk_cmd = 'mkdir -p %s' % remote_folder
+                mk_cmd = f'mkdir -p {remote_folder}'
                 stdin, stdout, stderr = ssh.exec_command(mk_cmd)
                 exists, isdir = self._check_remote_folder(ssh, remote_folder)
                 if not isdir:

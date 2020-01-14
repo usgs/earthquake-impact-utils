@@ -45,6 +45,7 @@ class GeographicObjects(object):
     to extract the closest object to a given location by calling the
     method .get_closest(lon, lat).
     """
+
     def __init__(self, objects, getlon=operator.attrgetter('lon'),
                  getlat=operator.attrgetter('lat')):
         self.objects = list(objects)
@@ -219,10 +220,8 @@ class OrthographicProjection(object):
                 + self.cos_phi0 * cos_phis * numpy.sin(lambdas / 2.0) ** 2.0
             )
             if (sin_dist > self.sin_pi_over_4).any():
-                raise ValueError('some points are too far from the projection '
-                                 'center lon=%s lat=%s' %
-                                 (numpy.degrees(self.lambda0),
-                                  numpy.degrees(self.phi0)))
+                raise ValueError(f'some points are too far from the projection '
+                                 f'center lon={numpy.degrees(self.lambda0)} lat={numpy.degrees(self.phi0)}')
             xx = numpy.cos(phis) * numpy.sin(lambdas)
             yy = (self.cos_phi0 * numpy.sin(phis) - self.sin_phi0 * cos_phis
                   * numpy.cos(lambdas))

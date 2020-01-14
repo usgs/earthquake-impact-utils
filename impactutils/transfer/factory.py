@@ -29,6 +29,6 @@ def get_sender_class(transfer_type):
              'email': EmailSender,
              'ssh': SecureSender}
     if transfer_type not in types:
-        raise KeyError('%s not a supported transfer type.' % transfer_type)
+        raise KeyError(f'{transfer_type} not a supported transfer type.')
     else:
         return types[transfer_type]
