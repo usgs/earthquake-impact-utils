@@ -5,6 +5,7 @@ from datetime import datetime
 import collections
 import copy
 import json
+import warnings
 
 # third party imports
 import h5py
@@ -13,6 +14,7 @@ import pandas as pd
 
 # local imports
 from impactutils.time.ancient_time import HistoricTime
+
 
 # list of allowed data types in dictionaries
 ALLOWED = [str, int, float, bool, bytes,
@@ -39,6 +41,11 @@ class HDFContainer(object):
         Args:
             hdfobj:  Open h5py File Object.
         """
+        msg = ("The HDFContainer (impactutils.io.container.HDFContainer) "
+               "is deprecated; use HDFContainerBase "
+               "(impactutils.io.smcontainer.HDFContainerBase). "
+               "This class will be removed.")
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
         self._hdfobj = hdfobj
 
     @classmethod

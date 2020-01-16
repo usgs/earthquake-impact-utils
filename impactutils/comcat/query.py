@@ -1,8 +1,10 @@
 # stdlib imports
+from datetime import datetime
+import json
 from urllib import request
 from urllib.error import HTTPError
-import json
-from datetime import datetime
+import warnings
+
 
 URL_TEMPLATE = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/[EVENTID].geojson'  # noqa
 REGIONS_URL = 'http://earthquake.usgs.gov/ws/geoserve/regions.json?latitude=[LAT]&longitude=[LON]'  # noqa
@@ -121,6 +123,9 @@ class GeoServe(object):
 
 class ComCatInfo(object):
     def __init__(self, eventid):
+        msg = ("The ComCatInfo (impactutils.comcat.query.ComCatInfo) "
+               "is deprecated. This class will be removed.")
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
         url = URL_TEMPLATE.replace('[EVENTID]', eventid)
         try:
             data = _get_url_data(url)
