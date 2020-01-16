@@ -281,6 +281,24 @@ def test_time_conversion():
         failed = True
     assert failed == True
 
+    # Add test for locations out of the raster extent
+    upper = [(85, -49.242448), (85, 95.867115), (-81.164926, -77.917277)]
+    target_times = [datetime.strptime("2016-08-01 8:00:00", "%Y-%m-%d %H:%M:%S"),
+                    datetime.strptime("2016-08-01 16:00:00",
+                                      "%Y-%m-%d %H:%M:%S"),
+                    datetime.strptime("2016-08-01 7:00:00",
+                                      "%Y-%m-%d %H:%M:%S")]
+    for city, tt in zip(upper, target_times):
+        utctime = datetime(2016, 8, 1, 10, 00, 00)
+        localtime = conv.to_localtime(utctime, city[0], city[1],
+                                      rounding_method='floor')
+        assert localtime.day == tt.day
+        assert localtime.month == tt.month
+        assert localtime.year == tt.year
+        assert localtime.hour == tt.hour
+        assert localtime.minute == tt.minute
+        assert localtime.second == tt.second
+
 
 def _test_local_time(shapefile=None):
     tdir = None

@@ -424,6 +424,10 @@ class TimeConversion(object):
         elif rounding_method == 'ceil':
             row = np.ceil(row).astype(int)
             col = np.ceil(col).astype(int)
+        if row >= self._shape[0]:
+            row = self._shape[0] - 1
+        if col >= self._shape[1]:
+            col = self._shape[1] - 1
         raster_value = self._raster[row][col]
         # Find the timezone code
         keys = list(self._timezones.keys())
