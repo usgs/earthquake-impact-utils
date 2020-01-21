@@ -4,6 +4,10 @@ import matplotlib
 from cartopy.mpl.geoaxes import GeoAxes
 import cartopy
 
+# local imports
+from impactutils.exceptions import RequiredArgumentError
+
+
 # CONSTANTS
 BAR_HEIGHT_FONT = 0.75    # bar height in fontsize units
 MAX_BAR_HEIGHT = 0.5      # maximum bar height in inches
@@ -136,24 +140,25 @@ def draw_scale(ax, pos='ll', padx=0.1, pady=0.1, font_size=None, units='km',
     hasbar = bar_length is not None
     hasdiv = divisions is not None
     if hasbar + hasdiv != 0 and hasbar + hasdiv != 2:
-        raise Exception('You must specify BOTH bar_length AND divisions.')
+        raise RequiredArgumentError(
+            'You must specify BOTH bar_length AND divisions.')
 
     if divisions is not None:
         if divisions not in [2, 3, 4, 5, 6]:
-            raise Exception('Divisions must be an integer in the range 2-6.')
+            raise ValueError('Divisions must be an integer in the range 2-6.')
 
     # check units
     if units not in UNITS:
-        raise Exception('Input scale bar units must be either "km" or "mi"')
+        raise ValueError('Input scale bar units must be either "km" or "mi"')
 
     # check position
     if pos not in ['ll', 'lr', 'ul', 'ur']:
-        raise Exception("Input scale bar position must be one of "
-                        "'ll', 'lr', 'ul', 'ur'")
+        raise ValueError("Input scale bar position must be one of "
+                         "'ll', 'lr', 'ul', 'ur'")
 
     # Verify that the input axes are in fact GeoAxes
     if not isinstance(ax, GeoAxes):
-        raise Exception('Input axes object must be a Cartopy GeoAxes.')
+        raise ValueError('Input axes object must be a Cartopy GeoAxes.')
 
     # Get the left, right, bottom, top edges in data units
     xmin, xmax = ax.get_xlim()

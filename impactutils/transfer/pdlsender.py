@@ -11,6 +11,7 @@ from .sender import Sender
 
 # local imports
 from impactutils.io.cmd import get_command_output
+from impactutils.exceptions import PDLError
 
 DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%f'
 
@@ -98,7 +99,7 @@ class PDLSender(Sender):
         """Send local file or directory via PDL.
 
         Raises:
-            Exception when:
+            PDLError when:
              - number of local_files is greater than 1.
              - PDL command fails for any reason.
 
@@ -109,7 +110,7 @@ class PDLSender(Sender):
         # we can really only support sending of one file, so error out
         # if someone has specified more than one.
         if len(self._local_files) > 1:
-            raise Exception('For PDL, you may only send one file at a time.')
+            raise PDLError('For PDL, you may only send one file at a time.')
 
         # build pdl command line from properties
         cmd = self._pdlcmd
@@ -173,7 +174,7 @@ class PDLSender(Sender):
         retcode, stdout, stderr = get_command_output(cmd)
         if not retcode:
             fmt = f'Could not send product "{retcode}" due to error "{stdout + stderr}"'
-            raise Exception(fmt)
+            raise PDLError(fmt)
 
         # return the number of files we just sent
         nfiles = 0
@@ -222,6 +223,6 @@ class PDLSender(Sender):
         retcode, stdout, stderr = get_command_output(cmd)
         if not retcode:
             fmt = f'Could not delete product "{retcode}" due to error "{stdout + stderr}"'
-            raise Exception(fmt)
+            raise PDLError(fmt)
 
         return stdout

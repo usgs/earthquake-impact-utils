@@ -11,16 +11,19 @@ from openquake.hazardlib.geo.geodetic import point_at
 from openquake.hazardlib.geo.point import Point
 from openquake.hazardlib.geo.utils import OrthographicProjection
 
-from impactutils.vectorutils.ecef import latlon2ecef
-from impactutils.vectorutils.ecef import ecef2latlon
-from impactutils.vectorutils.vector import Vector
-from impactutils.time.ancient_time import HistoricTime
+
+# local imports
 from impactutils.rupture.base import Rupture
+from impactutils.exceptions import ConsistentLengthError
 from impactutils.rupture.utils import (_quad_distance, get_quad_width,
                                        get_quad_normal, get_vertical_vector,
                                        get_quad_length, is_quad)
 from impactutils.rupture import gc2
 import impactutils.rupture.constants as constants
+from impactutils.time.ancient_time import HistoricTime
+from impactutils.vectorutils.ecef import latlon2ecef
+from impactutils.vectorutils.ecef import ecef2latlon
+from impactutils.vectorutils.vector import Vector
 
 
 class QuadRupture(Rupture):
@@ -238,11 +241,11 @@ class QuadRupture(Rupture):
         """
         if not (len(xp0) == len(yp0) == len(xp1) == len(yp1) ==
                 len(zp) == len(dips) == len(widths)):
-            raise Exception(
+            raise ConsistentLengthError(
                 'Number of xp0,yp0,xp1,yp1,zp,widths,dips points must be '
                 'equal.')
         if strike is not None and len(xp0) != len(strike) and len(strike) != 1:
-            raise Exception(
+            raise TypeError(
                 'Strike must be None or an array of one value or the '
                 'same length as trace coordinates.')
 
@@ -480,7 +483,7 @@ class QuadRupture(Rupture):
                 strike) == len(dip):
             pass
         else:
-            raise Exception(
+            raise ConsistentLengthError(
                 'Number of px, py, pz, dx, dy, length, width, '
                 'strike, dip points must be '
                 'equal.')
@@ -581,13 +584,13 @@ class QuadRupture(Rupture):
            len(yp3) == len(zp3):
             pass
         else:
-            raise Exception('All vectors specifying quadrilateral '
-                            'vertices must have the same length.')
+            raise ConsistentLengthError('All vectors specifying quadrilateral '
+                                        'vertices must have the same length.')
 
         nq = len(xp0)
         if group_index is not None:
             if len(group_index) != nq:
-                raise Exception(
+                raise ConsistentLengthError(
                     "group_index must have same length as vertices.")
         else:
             group_index = np.array(range(nq))

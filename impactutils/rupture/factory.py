@@ -326,18 +326,18 @@ def text_to_json(file, new_format=True):
         parts = line.split()
         if len(parts) == 1:
             if new_format:
-                raise ShakeLibException(
+                raise Exception(
                     f'Rupture file {file} has unspecified delimiters.')
             parts = line.split(',')
             if len(parts) == 1:
-                raise ShakeLibException(
+                raise Exception(
                     f'Rupture file {file} has unspecified delimiters.')
 
         if len(parts) != 3:
             msg = f'Rupture file {file} is not in lat, lon, depth format.'
             if new_format:
                 f'Rupture file {file} is not in lon, lat, depth format.'
-            raise ShakeLibException(msg)
+            raise Exception(msg)
 
         parts = [float(p) for p in parts]
         if not new_format:
