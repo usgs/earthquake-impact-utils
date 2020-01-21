@@ -2,28 +2,21 @@
 
 # stdlib imports
 import datetime
-from distutils import spawn
-import io
 import os.path
-import shutil
-import sys
-import tempfile
-import textwrap
 from unittest import mock
-import urllib.request
-import urllib.error
-import urllib.parse
-import zipfile
+import sys
+from shutil import which
+import pathlib
 
 # local imports
 from impactutils.transfer.pdlsender import PDLSender
 
 
 def test_send():
-    props = {'java': '',
-             'jarfile': '',
-             'privatekey': '',
-             'configfile': '',
+    props = {'java': '/usr/bin/java',
+             'jarfile': '/home/ProductClient/ProductClient.jar',
+             'privatekey': '/home/ProductClient/pdlkey',
+             'configfile': '/home/ProductClient/config.ini',
              'source': 'ci',
              'type': 'dummy',
              'code': 'ci2015abcd',
@@ -36,7 +29,7 @@ def test_send():
                       'magnitude': 5.4}
     product_props = {'maxmmi': 5.4,
                      'time': datetime.datetime.utcnow(),
-                     'other': {'name': 'testme'},
+                     'other': 'testme',
                      'testint': 5,
                      'alert': 'yellow'}
     props.update(optional_props)
@@ -54,10 +47,10 @@ def test_send():
 
 
 def test_cancel():
-    props = {'java': '',
-             'jarfile': '',
-             'privatekey': '',
-             'configfile': '',
+    props = {'java': '/usr/bin/java',
+             'jarfile': '/home/ProductClient/ProductClient.jar',
+             'privatekey': '/home/ProductClient/pdlkey',
+             'configfile': '/home/ProductClient/config.ini',
              'source': 'ci',
              'type': 'dummy',
              'code': 'ci2015abcd',
@@ -160,7 +153,45 @@ def test_cancel_fail():
             assert 'Could not delete product' in str(e)
 
 
+def _test_real_pdl(directory):
+    dirpath = pathlib.Path(directory)
+    props = {}
+    props['java'] = which('java')
+    props['jarfile'] = str(dirpath / 'ProductClient.jar')
+    props['privatekey'] = str(dirpath / 'pdlkey')
+    props['configfile'] = str(dirpath / 'config.ini')
+    props['source'] = 'nc'
+    props['type'] = 'dummy'
+    props['code'] = '73328466'
+    props['eventsource'] = 'nc'
+    props['eventsourcecode'] = 'nc73328466'
+    pprops = {}
+    pprops['string'] = 'green'
+    pprops['float'] = 5.1
+    pprops['int'] = 4
+    pprops['time'] = datetime.datetime.utcnow()
+    pdl = PDLSender(properties=props,
+                    product_properties=pprops)
+    try:
+        nfiles, stdout = pdl.send()
+        print(f'Sent {nfiles} files with output: "{stdout}"')
+    except Exception as e:
+        print(str(e))
+        sys.exit(1)
+
+    try:
+        stdout = pdl.cancel()
+        print(f'Sent cancel message with output: "{stdout}"')
+    except Exception as e:
+        print(str(e))
+        sys.exit(1)
+
+
 if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        directory = sys.argv[1]
+        _test_real_pdl(directory)
+
     test_send()
     test_cancel()
     test_send_fail()
