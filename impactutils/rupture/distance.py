@@ -10,6 +10,7 @@ from openquake.hazardlib.gsim.base import GMPE
 from openquake.hazardlib.gsim import base
 
 # local imports
+from impactutils.exceptions import ConsistentLengthError
 from impactutils.rupture.edge_rupture import EdgeRupture
 
 
@@ -185,7 +186,8 @@ def get_distance(methods, lat, lon, dep, rupture, dx=0.5):
 
     # Check dimensions of site coordinates
     if (lat.shape != lon.shape) or (lat.shape != dep.shape):
-        raise Exception('lat, lon, and dep must have the same shape.')
+        raise ConsistentLengthError(
+            'lat, lon, and dep must have the same shape.')
 
     # -------------------------------------------------------------------------
     # Point distances
