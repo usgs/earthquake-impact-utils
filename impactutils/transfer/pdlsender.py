@@ -16,64 +16,6 @@ from impactutils.exceptions import PDLError
 DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%f'
 
 
-def replace_required_properties(props, pdlcmd):
-    for propkey in props:
-        propvalue = props[propkey]
-        pdlcmd = pdlcmd.replace('[' + propkey.upper() + ']', propvalue)
-    return pdlcmd
-
-
-def replace_product_properties(props, cmd):
-    # add product properties as --property-PROPKEY=PROPVALUE
-    prop_nuggets = []
-    for propkey, propvalue in props.items():
-        if isinstance(propvalue, float):
-            prop_nuggets.append(
-                f'--property-{propkey}={propvalue:.4f}')
-        elif isinstance(propvalue, int):
-            prop_nuggets.append(
-                f'--property-{propkey}={int(propvalue):d}')
-        elif isinstance(propvalue, datetime.datetime):
-            prop_nuggets.append(
-                f'--property-{propkey}={propvalue.strftime(DATE_TIME_FMT)[0:23]}')
-        elif isinstance(propvalue, str):
-            prop_nuggets.append(f'--property-{propkey}="{propvalue}"')
-        else:
-            prop_nuggets.append(
-                f'--property-{propkey}={str(propvalue)}')
-    cmd = cmd.replace('[PRODUCT_PROPERTIES]', ' '.join(prop_nuggets))
-
-    return cmd
-
-
-def replace_optional_properties(props, optpr, cmd):
-    opt_nuggets = []
-    for propkey in optprops:
-        if propkey in props:
-            if propkey == 'eventtime':
-                opt_nuggets.append(
-                    f'--{propkey}={props[propkey].strftime(DATE_TIME_FMT)[0:23]}Z')
-            else:
-                fmt = '--%s=' + self._optional_properties_fmt[propkey]
-                opt_nuggets.append(
-                    fmt % (propkey, self._properties[propkey]))
-    cmd = cmd.replace('[OPTIONAL_PROPERTIES]', ' '.join(opt_nuggets))
-
-
-def replace_files(files, directory, cmd):
-    if len(files):
-        cmd = cmd.replace('[FILE]', f'--file={files[0]}')
-    else:
-        cmd = cmd.replace('[FILE]', '')
-    if len(directory):
-        cmd = cmd.replace('[DIRECTORY]',
-                          f'--directory={directory}')
-    else:
-        cmd = cmd.replace('[DIRECTORY]', '')
-
-    return cmd
-
-
 class PDLSender(Sender):
     """Class to invoke a PDL send command on a product.
 
@@ -233,7 +175,7 @@ class PDLSender(Sender):
         # we can really only support sending of one file, so error out
         # if someone has specified more than one.
         if len(self._local_files) > 1:
-            raise Exception('For PDL, you may only send one file at a time.')
+            raise PDLError('For PDL, you may only send one file at a time.')
 
         # build pdl command line from properties
         cmd = self._pdlcmd
@@ -256,16 +198,9 @@ class PDLSender(Sender):
         # call PDL on the command line
         retcode, stdout, stderr = get_command_output(cmd)
         if not retcode:
-
-
-<< << << < HEAD
-            fmt = f'Could not send product "{retcode}" due to error "{stdout + stderr}"'
-            raise PDLError(fmt)
-== == == =
             ptype = self._properties['type']
             fmt = f'Could not send product "{ptype}" due to error "{stdout + stderr}"'
-            raise Exception(fmt)
->>>>>> > Fixing issues in pdl sender, where duplicated code in send / cancel methods needed to be factored out.
+            raise PDLError(fmt)
 
         # return the number of files we just sent
         nfiles = 0
