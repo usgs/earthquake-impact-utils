@@ -95,40 +95,13 @@ class PDLSender(Sender):
         super().__init__(properties=properties, local_files=local_files,
                          local_directory=local_directory, cancelfile=cancelfile)
 
-    def send(self):
-        """Send local file or directory via PDL.
-
-        Raises:
-            PDLError when:
-             - number of local_files is greater than 1.
-             - PDL command fails for any reason.
-
-        Returns:
-            Tuple containing number of files sent, and the standard output of
-            the PDL command.
-        """
-        # we can really only support sending of one file, so error out
-        # if someone has specified more than one.
-        if len(self._local_files) > 1:
-            raise PDLError('For PDL, you may only send one file at a time.')
-
-        # build pdl command line from properties
-        cmd = self._pdlcmd
+    def _replace_required_properties(self, cmd):
         for propkey in self._required_properties:
             propvalue = self._properties[propkey]
             cmd = cmd.replace('[' + propkey.upper() + ']', propvalue)
-        cmd = cmd.replace('[STATUS]', 'UPDATE')
-        if self._local_files:
-            cmd = cmd.replace('[FILE]', f'--file={self._local_files[0]}')
-        else:
-            cmd = cmd.replace('[FILE]', '')
-        if self._local_directory:
-            cmd = cmd.replace(
-                '[DIRECTORY]', f'--directory={self._local_directory}')
-        else:
-            cmd = cmd.replace('[DIRECTORY]', '')
+        return cmd
 
-        # add product properties as --property-PROPKEY=PROPVALUE
+    def _replace_product_properties(self, cmd):
         if hasattr(self, '_product_properties'):
             prop_nuggets = []
             for propkey, propvalue in self._product_properties.items():
@@ -149,7 +122,22 @@ class PDLSender(Sender):
             cmd = cmd.replace('[PRODUCT_PROPERTIES]', ' '.join(prop_nuggets))
         else:
             cmd = cmd.replace('[PRODUCT_PROPERTIES]', '')
+        return cmd
 
+    def _replace_files(self, cmd):
+        if self._local_files:
+            cmd = cmd.replace('[FILE]', f'--file={self._local_files[0]}')
+        else:
+            cmd = cmd.replace('[FILE]', '')
+        if self._local_directory:
+            cmd = cmd.replace(
+                '[DIRECTORY]', f'--directory={self._local_directory}')
+        else:
+            cmd = cmd.replace('[DIRECTORY]', '')
+
+        return cmd
+
+    def _replace_optional_properties(self, cmd):
         # add optional properties
         opts = set(self._optional_properties)
         props = set(self._properties.keys())
@@ -170,10 +158,48 @@ class PDLSender(Sender):
         else:
             cmd = cmd.replace('[OPTIONAL_PROPERTIES]', '')
 
+        return cmd
+
+    def send(self):
+        """Send local file or directory via PDL.
+
+        Raises:
+            Exception when:
+             - number of local_files is greater than 1.
+             - PDL command fails for any reason.
+
+        Returns:
+            Tuple containing number of files sent, and the standard output of
+            the PDL command.
+        """
+        # we can really only support sending of one file, so error out
+        # if someone has specified more than one.
+        if len(self._local_files) > 1:
+            raise PDLError('For PDL, you may only send one file at a time.')
+
+        # build pdl command line from properties
+        cmd = self._pdlcmd
+
+        # make this an update status
+        cmd = cmd.replace('[STATUS]', 'UPDATE')
+
+        # fill out the required properties
+        cmd = self._replace_required_properties(cmd)
+
+        # fill out any files or directories we'll be sending
+        cmd = self._replace_files(cmd)
+
+        # fill in all the product properties
+        cmd = self._replace_product_properties(cmd)
+
+        # fill in all the optional properties
+        cmd = self._replace_optional_properties(cmd)
+
         # call PDL on the command line
         retcode, stdout, stderr = get_command_output(cmd)
         if not retcode:
-            fmt = f'Could not send product "{retcode}" due to error "{stdout + stderr}"'
+            ptype = self._properties['type']
+            fmt = f'Could not send product "{ptype}" due to error "{stdout + stderr}"'
             raise PDLError(fmt)
 
         # return the number of files we just sent
@@ -199,30 +225,30 @@ class PDLSender(Sender):
             Standard output from PDL DELETE command.
         """
         # build pdl command line from properties
-        self._properties['status'] = 'DELETE'
         self._properties['file'] = ''
         self._properties['directory'] = ''
         cmd = self._pdlcmd
 
-        prop_nuggets = []
-        for propkey, propvalue in self._properties.items():
-            if isinstance(propvalue, float):
-                prop_nuggets.append(f'--property-{propkey}={propvalue:.4f}')
-            elif isinstance(propvalue, int):
-                prop_nuggets.append(f'--property-{propkey}={int(propvalue):d}')
-            elif isinstance(propvalue, datetime.datetime):
-                prop_nuggets.append(
-                    f'--property-{propkey}={propvalue.strftime(DATE_TIME_FMT)[0:23]}')
-            elif isinstance(propvalue, str):
-                prop_nuggets.append(f'--property-{propkey}="{propvalue}"')
-            else:
-                prop_nuggets.append(f'--property-{propkey}={str(propvalue)}')
+        # make this a delete status
+        cmd = cmd.replace('[STATUS]', 'DELETE')
 
-        cmd = cmd.replace('[PRODUCT_PROPERTIES]', ' '.join(prop_nuggets))
+        # fill out the required properties
+        cmd = self._replace_required_properties(cmd)
+
+        # fill out any files or directories we'll be sending
+        cmd = self._replace_files(cmd)
+
+        # fill in all the product properties
+        cmd = self._replace_product_properties(cmd)
+
+        # fill in all the optional properties
+        cmd = self._replace_optional_properties(cmd)
 
         retcode, stdout, stderr = get_command_output(cmd)
         if not retcode:
-            fmt = f'Could not delete product "{retcode}" due to error "{stdout + stderr}"'
+            ptype = self._properties['type']
+            fmt = (f'Could not delete product "{ptype}" due to error '
+                   f'"{stdout + stderr}"')
             raise PDLError(fmt)
 
         return stdout
