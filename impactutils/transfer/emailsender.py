@@ -1,17 +1,17 @@
 # stdlib imports
-import os.path
-import shutil
-import smtplib
-import mimetypes
 from email import encoders
 from email.message import Message
-from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
 import email.utils
+import mimetypes
+import os.path
+import shutil
+import smtplib
 import tempfile
 import zipfile
 
@@ -227,7 +227,22 @@ class EmailSender(Sender):
         sender = self._properties['sender']
         subject = self._properties['subject']
         text = cancel_content
-        address_tuples = _split_addresses(self._properties['recipients'])
+        # Check for bcc
+        if 'max_bcc' in self._properties:
+            max_bcc = self._properties['max_bcc']
+        else:
+            max_bcc = 0
+
+        if max_bcc == 0:
+            primary_recipient = ''
+
+        if max_bcc:
+            if 'primary_recipient' in self._properties:
+                primary_recipient = self._properties['primary_recipient']
+            else:
+                primary_recipient = ''
+        address_tuples = _split_addresses(self._properties['recipients'], max_bcc,
+                                          primary_recipient)
         smtp_servers = self._properties['smtp_servers']
         attachments = []
         if cancel_content is None:
@@ -238,10 +253,14 @@ class EmailSender(Sender):
             msg['To'] = address
             msg['Subject'] = subject
             msg['Date'] = email.utils.formatdate()
-            bccstr = ', '.join(bcc)
-            msg['Bcc'] = bccstr
+            if bcc is not None:
+                bccstr = ', '.join(bcc)
+                msg['Bcc'] = bccstr
             msgtxt = msg.as_string()
-            all_addresses = [address] + bcc
+            if bcc is not None:
+                all_addresses = [address] + bcc
+            else:
+                all_addresses = [address]
             _send_email(sender, all_addresses, msgtxt, smtp_servers)
 
 
