@@ -157,7 +157,7 @@ class HDFContainerBase(object):
         dict_group = self._getGroup('dictionaries', groups)
         if name not in dict_group:
             raise LookupError(
-                f'dictionary {name} not in {self._hdfobj.filename}')
+                f'Dictionary {name} not in {self._hdfobj.filename}')
         del dict_group[name]
         return
 
@@ -297,7 +297,7 @@ class HDFContainerBase(object):
         """
         string_group = self._getGroup('strings', groups)
         if name not in string_group:
-            raise LookupError(f'Dictionary {name} not in {self.getFileName()}')
+            raise LookupError(f'String {name} not in {self.getFileName()}')
         mdataset = string_group[name]
         outstring = mdataset[()].decode('utf-8')
         return outstring
@@ -327,7 +327,7 @@ class HDFContainerBase(object):
         """
         string_group = self._getGroup('strings', groups)
         if name not in string_group:
-            raise LookupError(f'string {name} not in {self._hdfobj.filename}')
+            raise LookupError(f'String {name} not in {self._hdfobj.filename}')
         del string_group[name]
 
 

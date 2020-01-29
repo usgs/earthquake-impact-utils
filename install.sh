@@ -96,6 +96,7 @@ package_list=(
     "pytest-mpl"
     "python>=3.6"
     "shapely"
+    "vcr"
     "xlrd"
 )
 

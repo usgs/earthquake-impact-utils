@@ -205,7 +205,6 @@ class SecureSender(Sender):
             remote_file = os.path.join(remote_folder, tfile)
         remote_tmp_file = remote_file + '.tmp_' + \
             datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
-        print(f'Copying {local_file}...')
         scp.put(local_file, remote_tmp_file)
         rename_cmd = f'mv {remote_tmp_file} {remote_file}'
         stdin, stdout, stderr = ssh.exec_command(rename_cmd)

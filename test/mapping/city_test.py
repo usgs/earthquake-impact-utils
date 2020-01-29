@@ -3,12 +3,16 @@
 from __future__ import print_function
 
 # stdlib imports
+from impactutils.mapping.city import Cities
 import os.path
 import sys
 import tempfile
 
+# third party imports
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+import pytest
 
 # hack the path so that I can debug these functions if I need to
 homedir = os.path.dirname(os.path.abspath(__file__))  # where is this script?
@@ -16,10 +20,9 @@ impactdir = os.path.abspath(os.path.join(homedir, '..', '..'))
 # put this at the front of the system path, ignoring any installed mapio stuff
 sys.path.insert(0, impactdir)
 
-from impactutils.mapping.city import Cities
-
 
 def test():
+
     print('Test loading geonames cities file...')
     cities = Cities.fromDefault()  # load from a file contained in repo
     assert len(cities) == 145315
@@ -67,8 +70,27 @@ def test():
     bigcities.save(tmpfile)
     newcities = Cities.fromCSV(tmpfile)
     assert len(bigcities) == len(newcities)
+    print(Cities.__repr__)
     print('Passed saving cities and reading them back in.')
+
+
+def test_exceptions():
+    match_msg = "Missing some of required keys"
+    with pytest.raises(KeyError, match=match_msg) as a:
+        df = pd.DataFrame()
+        ct = Cities(df)
+
+    cities = Cities.fromDefault()
+    df = cities.getDataFrame()
+    c2 = Cities(df)
+    c2.sortByColumns(['lat'])
+    match_msg = "not in list of DataFrame columns"
+    with pytest.raises(KeyError, match=match_msg) as a:
+        c2.sortByColumns(['invalid'])
+    np.testing.assert_array_equal(
+        c2.getColumns(), ['name', 'ccode', 'lat', 'lon', 'iscap', 'pop'])
 
 
 if __name__ == '__main__':
     test()
+    test_exceptions()

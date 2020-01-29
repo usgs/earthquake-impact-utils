@@ -95,7 +95,7 @@ class FTPSender(Sender):
             return (nfiles, f'{int(nfiles):d} files were sent successfully to {remote_host} {remote_folder}')
         except Exception as obj:
             raise Exception(
-                f'Could not send to {host}.  Error "{str(obj)}"')
+                f'Could not send to {remote_host}.  Error "{str(obj)}"')
 
     def cancel(self):
         """
