@@ -1,7 +1,8 @@
 # stdlib imports
+import json
 import re
-import time
 import string
+import time
 
 # third party imports
 import pandas as pd
@@ -221,6 +222,161 @@ def _get_channels(columns):
                 break
     return channels
 
+
+def dataframe_to_json(df, jsonfile, earthquake_location='--'):
+    """Write a dataframe to json format.
+
+    Args:
+        df (DataFrame): Pandas dataframe, as described in read_excel.
+        jsonfile (str): Path to file where XML file should be written.
+
+    Notes:
+        This method accepts either a dataframe from read_excel, or
+        one with this structure:
+         - STATION: Station code (REQUIRED)
+         - IMC: Component (HHE,HHN, GREATER_OF_TWO, ROTD50, etc.) (REQUIRED)
+         - IMT: Intensity measure type (pga,pgv, etc.) (REQUIRED)
+         - VALUE: IMT value. (REQUIRED)
+         - LAT: Station latitude. (REQUIRED)
+         - LON: Station longitude. (REQUIRED)
+         - NETID: Station contributing network. (REQUIRED)
+         - FLAG: String quality flag, meaningful to contributing networks,
+                 but ShakeMap ignores any station with a non-zero value. (REQUIRED)
+         - ELEV: Elevation of station (m). (OPTIONAL)
+         - NAME: String describing station. (OPTIONAL)
+         - DISTANCE: Distance (km) from station to origin. (OPTIONAL)
+         - LOC: Description of location (i.e., "5 km south of Wellington")
+                (OPTIONAL)
+         - INSTTYPE: Instrument type (FBA, etc.) (OPTIONAL)
+         - INTENSITY: MMI intensity. (OPTIONAL)
+         - NRESP: Number of responses for aggregated intensity. (OPTIONAL)
+         - INTENSITY_STDDEV: Uncertainty for this intensity. (OPTIONAL)
+    """
+    features = []
+
+    if hasattr(df.columns, 'levels'):
+        top_headers = set(df.columns.levels[0])
+        required = set(REQUIRED_COLUMNS)
+        optional = set(OPTIONAL)
+        channel_candidates = (top_headers - required) - optional
+        channels = _get_channels(channel_candidates)
+    else:
+        channels = []
+
+    processed_stations = []
+    for _, row in df.iterrows():
+        tmprow = row.copy()
+        if isinstance(tmprow.index, pd.core.indexes.multi.MultiIndex):
+            tmprow.index = tmprow.index.droplevel(1)
+
+        # assign required columns
+        stationcode = str(tmprow['STATION']).strip()
+
+        netid = tmprow['NETID'].strip()
+        if not stationcode.startswith(netid):
+            stationcode = f'{netid}.{stationcode}'
+
+        # if this is a dataframe created by shakemap,
+        # there will be multiple rows per station.
+        # below we process all those rows at once,
+        # so we need this bookkeeping to know that
+        # we've already dealt with this station
+        if stationcode in processed_stations:
+            continue
+
+        station = {}
+
+        ## Geometry
+        geom = {}
+        geom['type'] = 'Point'
+        lat = f"{tmprow['LAT']:.4f}"
+        lon = f"{tmprow['LON']:.4f}"
+        elev = f"{tmprow['ELEV']:.1f}"
+        geom['coordinates'] = [
+            lat, lon, elev
+        ]
+        station['geometry'] = geom
+
+        ## Properties
+        props = {}
+        props['code'] = stationcode.split('.')[-1]
+        # standard column headers
+        if 'NAME' in tmprow:
+            props['name'] = tmprow['NAME'].strip()
+        if 'NETID' in tmprow:
+            props['network'] = tmprow['NETID'].strip()
+        if 'DISTANCE' in tmprow:
+            props['distance'] = f"{tmprow['DISTANCE']:.1f}"
+        if 'INTENSITY' in tmprow:
+            props['intensity'] = f"{tmprow['INTENSITY']:.1f}"
+        if 'NRESP' in tmprow:
+            props['nresp'] = f"{int(tmprow['NRESP']):d}"
+        if 'INTENSITY_STDDEV' in tmprow:
+            props['intensity_stddev'] = f"{tmprow['INTENSITY_STDDEV']:.2f}"
+        if 'SOURCE' in tmprow:
+            props['source'] = tmprow['SOURCE'].strip()
+        if 'LOC' in tmprow:
+            props['location'] = tmprow['LOC'].strip()
+        else:
+            props['location'] = '--'
+        if 'INSTTYPE' in tmprow:
+            props['type'] = tmprow['INSTTYPE'].strip()
+        # new format properties
+        if 'PROVIDER' in tmprow:
+            props['provider'] = tmprow['PROVIDER'].strip()
+        if 'INSTRUMENT' in tmprow:
+            props['instrument'] = tmprow['INSTRUMENT'].strip()
+        if 'SERIAL' in tmprow:
+            props['serial'] = tmprow['SERIAL'].strip()
+        else:
+            props['serial'] = 'None'
+        if 'PERIOD' in tmprow:
+            props['period'] = tmprow['PERIOD'].strip()
+        if 'DAMPING' in tmprow:
+            props['damping'] = tmprow['DAMPING'].strip()
+        if 'SENSITIVITY' in tmprow:
+            props['sensitivity'] = tmprow['SENSITIVITY'].strip()
+        if 'SOURCE_FORMAT' in tmprow:
+            props['source_format'] = tmprow['SOURCE_FORMAT'].strip()
+        if 'STRUCTURE' in tmprow:
+            props['structure'] = tmprow['STRUCTURE'].strip()
+        station['properties'] = props
+
+
+        station['channels'] = {}
+        # sort channels by N,E,Z or H1,H2,Z
+        channels = sorted(list(channels))
+
+        for channel in channels:
+            if channel not in station['channels']:
+                station['channels'][channel.upper()] = {}
+                station['channels'][channel.upper()]['amplitudes'] = []
+
+            for pgm in ['pga', 'pgv', 'psa03', 'psa10', 'psa30']:
+                newpgm = _translate_imt(pgm, row[channel].index)
+                c1 = newpgm not in row[channel]
+                c2 = False
+                if not c1:
+                    c2 = np.isnan(row[channel][newpgm])
+                if c1 or c2:
+                    continue
+                # make an element with the old style name
+                p = {'name': pgm, 'flag':0, 'value': f'{row[channel][newpgm]:.4f}'}
+                station['channels'][channel.upper()]['amplitudes'] += [p]
+        features += [station]
+        processed_stations.append(stationcode)
+    import pprint
+    geojson = {
+        'type': "FeatureCollection",
+        'software': {
+            'name': "impactutils",
+            'version': "1.0.0"
+        },
+        'process_time': int(time.time()),
+        'features': features
+    }
+    with open('test.json', 'w') as f:
+        json.dump(geojson, f, indent=4)
 
 def dataframe_to_xml(df, xmlfile, reference=None):
     """Write a dataframe to ShakeMap XML format.
