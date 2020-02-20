@@ -277,6 +277,6 @@ def test_read_dyfi():
 
 if __name__ == '__main__':
     test_write_json()
-    """test_write_xml()
+    test_write_xml()
     test_read_tables()
-    test_dataframe_to_xml()"""
+    test_dataframe_to_xml()
