@@ -5,8 +5,26 @@ import tempfile
 import os.path
 import numpy as np
 from xml.dom import minidom
-from impactutils.io.table import read_excel, dataframe_to_xml
+from impactutils.io.table import read_excel, dataframe_to_xml, dataframe_to_json
 import pandas as pd
+
+
+def test_write_json():
+    # where is this script?
+    homedir = os.path.dirname(os.path.abspath(__file__))
+    datadir = os.path.join(homedir, '..', 'data')
+    complete_file = os.path.join(datadir, 'complete_pgm.xlsx')
+    tempdir = None
+    try:
+        tempdir = tempfile.mkdtemp()
+        df, reference = read_excel(complete_file)
+        jsonfile = os.path.join(tempdir, 'foo.json')
+        dataframe_to_json(df, jsonfile)
+    except Exception:
+        raise AssertionError('Could not write JSON file.')
+    finally:
+        if tempdir is not None:
+            shutil.rmtree(tempdir)
 
 
 def test_write_xml():
@@ -208,7 +226,9 @@ def test_read_dyfi():
 
 
 if __name__ == '__main__':
-    test_read_dyfi()
+    test_write_json()
+    """test_read_dyfi()
     test_write_xml()
     test_read_tables()
     test_dataframe_to_xml()
+    """
