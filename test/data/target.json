@@ -11,6 +11,12 @@
             "distance":89.0,
             "provider":"PR",
             "location": "--",
+            "serial": 1,
+            "period": 0.5,
+            "damping": 4,
+            "sensitivity": 10,
+            "source_format": "cosmos",
+            "structure": "building",
             "components":{
                "GREATER_OF_TWO_HORIZONTALS":{
                   "SA":[{
@@ -114,6 +120,12 @@
             "code":"BY01",
             "network":"OK",
             "distance":70.0,
+            "serial": 2,
+            "period": 0.2,
+            "damping": 5,
+            "sensitivity": 100,
+            "source_format": "csmd",
+            "structure": "bunker",
             "provider":"OK",
             "components":{
                "GREATER_OF_TWO_HORIZONTALS":{
@@ -204,6 +216,12 @@
             "name":"BMD",
             "code":"BY03",
             "network":"TE",
+            "serial": 3,
+            "period": 0.1,
+            "damping": 6,
+            "sensitivity": 1000,
+            "source_format": "mining",
+            "structure": "bridge",
             "distance":75,
             "provider":"TE",
             "components":{
