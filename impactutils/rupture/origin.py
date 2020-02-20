@@ -174,12 +174,12 @@ class Origin(object):
                  'ALL': {'rake': 45.0, 'dip': 90.0}}
 
         if mech not in list(mechs.keys()):
-            raise Exception(
+            raise ValueError(
                 f'Mechanism must be one of: {str(list(mechs.keys()))}')
 
         if dip is not None:
             if dip < 0 or dip > 90:
-                raise Exception('Dip must be in range 0-90 degrees.')
+                raise ValueError('Dip must be in range 0-90 degrees.')
         else:
             dip = mechs[mech]['dip']
 
@@ -189,7 +189,7 @@ class Origin(object):
             if rake > 180:
                 rake -= 360
             if rake < -180 or rake > 180:
-                raise Exception(
+                raise ValueError(
                     'Rake must be transformable to be in range -180 to 180 '
                     'degrees.')
         else:

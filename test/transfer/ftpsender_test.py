@@ -22,20 +22,32 @@ class MockFTP(TestCase):
     def __init__(self, folder):
         pass
 
+    def close(self):
+        pass
+
     def connect(self):
         pass
 
-    def load_system_host_keys(self):
-        pass
-
-    def get_transport(self):
+    def cwd(self, folder):
         pass
 
     def exec_command(self, cmd):
         return (MockSTDIO(), MockSTDIO(), MockSTDIO())
 
-    def close(self):
-        return
+    def get_transport(self):
+        pass
+
+    def load_system_host_keys(self):
+        pass
+
+    def quit(self):
+        pass
+
+    def rename(self, tmp, path):
+        pass
+
+    def storbinary(self, cmd, file, num):
+        pass
 
 
 def test_mock_send_file():
@@ -48,21 +60,27 @@ def test_mock_send_file():
     thispath, thisfilename = os.path.split(thisfile)
     cancelfile = 'CANCEL'
 
-    ftp = 'impactutils.transfer.ftpsender.FTPSender.FTP'
+    ftp = 'impactutils.transfer.ftpsender.FTPSender._setup'
     # file
     with mock.patch(ftp) as mock_ftp:
-        mock_connect.return_value = MockFTP()
+        mock_ftp.return_value = MockFTP('folder')
         sender = FTPSender(properties=properties, local_files=[
                            thisfile], cancelfile=cancelfile)
         nfiles, send_msg = sender.send()
-        url = f"ftp://{properties['remote_host']}{properties['remote_directory']}/{thisfilename}"
-        fh = urllib.request.urlopen(url)
-        fh.close()
-        print(f'Successfully sent local file {thisfile}')
+        assert nfiles == 1
+        assert 'successfully' in send_msg
+        sender.cancel()
+
+    print('Testing sending folder...')
+    thisroot, thisbase = os.path.split(thispath)
+    cancelfile = 'CANCEL'
+    with mock.patch(ftp) as mock_ftp:
+        sender = FTPSender(properties=properties,
+                           local_directory=thispath, cancelfile=cancelfile)
+        nfiles, send_msg = sender.send()
+        assert 'sent successfully' in send_msg
         cancel_msg = sender.cancel()
-        url = f"ftp://{properties['remote_host']}{properties['remote_directory']}/{cancelfile}"
-        fh = urllib.request.urlopen(url)
-        fh.close()
+        sender._create_remote_directory(MockFTP(''), '')
 
 
 def _test_send_file(properties):

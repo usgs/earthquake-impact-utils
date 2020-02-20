@@ -18,6 +18,9 @@ import pytz
 from shapely.geometry import shape, Point
 from shapely.ops import transform
 
+# local imports
+from impactutils.exceptions import RequiredArgumentError, UnsupportedArgumentError
+
 
 TIMEFMT = '%Y-%m-%dT%H:%M:%S'
 TIMEOUT = 30  # number of seconds to wait for urlopen requests
@@ -345,17 +348,17 @@ class TimeConversion(object):
             }
         else:
             if raster_shape is None:
-                raise Exception('For a custom tiff, the shape of the array '
-                                'must be specified as a tuple. Example: (8150, 18000).')
+                raise RequiredArgumentError('For a custom tiff, the shape of the array '
+                                            'must be specified as a tuple. Example: (8150, 18000).')
             if extents is None:
-                raise Exception('For a custom tiff, the extents '
-                                'must be specified.')
+                raise RequiredArgumentError('For a custom tiff, the extents '
+                                            'must be specified.')
             if resolution is None:
-                raise Exception('For a custom tiff, the resolution of the tiff '
-                                'must be specified as a tuple. Example: (0.02, 0.02).')
+                raise RequiredArgumentError('For a custom tiff, the resolution of the tiff '
+                                            'must be specified as a tuple. Example: (0.02, 0.02).')
             if timezone_coding is None:
-                raise Exception('For a custom tiff, the path to the country code '
-                                'file must be specified.')
+                raise RequiredArgumentError('For a custom tiff, the path to the country code '
+                                            'file must be specified.')
             self._filepath = tiff
             self._shape = raster_shape
             self._resolution = resolution
@@ -386,8 +389,8 @@ class TimeConversion(object):
         # Validate rounding option
         rounding_option = ['floor, ceil, round']
         if rounding_method not in ['floor', 'ceil', 'round']:
-            raise Exception(f"{rounding_method} is not a valid 'rounding_method'."
-                            f" It must be one of {rounding_option}.")
+            raise UnsupportedArgumentError(f"{rounding_method} is not a valid 'rounding_method'."
+                                           f" It must be one of {rounding_option}.")
         # Get the extents of the raster
         min_lon = self._extents['Lower Left'][0]
         max_lon = self._extents['Lower Right'][0]

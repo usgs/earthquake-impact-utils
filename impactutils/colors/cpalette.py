@@ -1,6 +1,11 @@
+# third party imports
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 import pandas as pd
+
+# local imports
+from impactutils.exceptions import ConsistentLengthError, UnsupportedArgumentError
+
 
 MMI = {'z0': np.arange(0, 10),
        'z1': np.arange(1, 11),
@@ -104,8 +109,8 @@ class ColorPalette(object):
         """
         # validate that lengths are all identical
         if len(z0) != len(z1) != len(rgb0) != len(rgb1):
-            raise Exception('Lengths of input sequences to ColorPalette() '
-                            'must be identical.')
+            raise ConsistentLengthError('Lengths of input sequences to ColorPalette() '
+                                      'must be identical.')
         self._is_log = is_log
         z0 = np.array(z0)
         z1 = np.array(z1)
@@ -179,7 +184,7 @@ class ColorPalette(object):
             ColorPalette object.
         """
         if preset not in PALETTES:
-            raise Exception(
+            raise UnsupportedArgumentError(
                 f'Preset {preset} not in list of supported presets.')
         z0 = PALETTES[preset]['z0'].copy()
         z1 = PALETTES[preset]['z1'].copy()
@@ -277,8 +282,8 @@ class ColorPalette(object):
         """
         # use the whole dynamic range of the colormap
         if len(z0) != len(z1):
-            raise Exception('Lengths of input sequences to '
-                            'ColorPalette.fromColorMap() must be identical.')
+            raise ConsistentLengthError('Lengths of input sequences to '
+                                      'ColorPalette.fromColorMap() must be identical.')
         zmin = np.min(z0)
         zmax = np.max(z1)
         rgb0 = []
