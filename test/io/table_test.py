@@ -4,6 +4,7 @@ import shutil
 import tempfile
 import os.path
 import numpy as np
+import json
 from xml.dom import minidom
 from impactutils.io.table import read_excel, dataframe_to_xml, dataframe_to_json
 import pandas as pd
@@ -13,18 +14,67 @@ def test_write_json():
     # where is this script?
     homedir = os.path.dirname(os.path.abspath(__file__))
     datadir = os.path.join(homedir, '..', 'data')
-    complete_file = os.path.join(datadir, 'complete_pgm.xlsx')
+    excel_file = os.path.join(datadir, 'json_test.xlsx')
+    csv_file = os.path.join(datadir, 'json_test.csv')
+    target_file = os.path.join(datadir, 'target.json')
+
+    # XLS
     tempdir = None
     try:
         tempdir = tempfile.mkdtemp()
-        df, reference = read_excel(complete_file)
+        df, ref = read_excel(excel_file)
         jsonfile = os.path.join(tempdir, 'foo.json')
-        dataframe_to_json(df, jsonfile)
+        geojson_excel = dataframe_to_json(df, jsonfile)
     except Exception:
         raise AssertionError('Could not write JSON file.')
     finally:
         if tempdir is not None:
             shutil.rmtree(tempdir)
+    with open(target_file) as json_file:
+        target = json.load(json_file)
+    validate_json(geojson_excel, target)
+
+    # CSV
+    tempdir = None
+    try:
+        tempdir = tempfile.mkdtemp()
+        df = pd.read_csv(csv_file)
+        jsonfile = os.path.join(tempdir, 'foo.json')
+        geojson_csv = dataframe_to_json(df, jsonfile)
+    except Exception:
+        raise AssertionError('Could not write JSON file.')
+    finally:
+        if tempdir is not None:
+            shutil.rmtree(tempdir)
+    with open(target_file) as json_file:
+        target = json.load(json_file)
+    validate_json(geojson_csv, target)
+
+
+def validate_json(result, target):
+    for target_key, target_value in target.items():
+        if isinstance(target_value, dict):
+            validate_json(result[target_key], target_value)
+        elif isinstance(target_value, list):
+            if isinstance(target_value[0], (float, int)):
+                np.testing.assert_array_equal(
+                    result[target_key], target_value)
+            else:
+                for tv in target_value:
+                    for rv in result[target_key]:
+                        if isinstance(rv, dict) and 'id' in rv:
+                            if rv['id'] == tv['id']:
+                                validate_json(rv, tv)
+                        elif isinstance(rv, dict) and 'period' in rv:
+                            if rv['period'] == tv['period']:
+                                validate_json(rv, tv)
+                        elif isinstance(rv, dict) and 'name' in rv:
+                            if rv['name'] == tv['name']:
+                                validate_json(rv, tv)
+                        else:
+                            continue
+        else:
+            assert result[target_key] == target_value
 
 
 def test_write_xml():
@@ -227,7 +277,11 @@ def test_read_dyfi():
 
 if __name__ == '__main__':
     test_write_json()
-    """test_read_dyfi()
+<< << << < HEAD
+"""test_read_dyfi()
+=======
+    test_read_dyfi()
+>>>>>>> Added functionality to create json for ShakeMap
     test_write_xml()
     test_read_tables()
     test_dataframe_to_xml()
