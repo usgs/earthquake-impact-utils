@@ -634,7 +634,7 @@ def _get_properties(df):
     if 'INTENSITY_STDDEV' in df:
         props['intensity_stddev'] = df['INTENSITY_STDDEV']
     if 'SOURCE' in df:
-        props['provider'] = df['SOURCE'].strip()
+        props['source'] = df['SOURCE'].strip()
     if 'LOC' in df:
         loc = df['LOC'].strip()
         if loc == '':
