@@ -298,7 +298,7 @@ class TimeConversion(object):
                 is located under the data directory.
             raster_shape (tuple): The shape of the raster array. If a tiff other than
                 the default is specified, then the shape must also be specified.
-                The default is the shape of the default tiff (9000, 18000).
+                The default is the shape of the default tiff (8150, 18000).
             resolution (tuple): Resolution in degrees (longitude, latitude).
                 If a tiff other than the default is specified, then the resolution
                 must also be specified. The default is the resolution of the
@@ -349,7 +349,7 @@ class TimeConversion(object):
         else:
             if raster_shape is None:
                 raise RequiredArgumentError('For a custom tiff, the shape of the array '
-                                            'must be specified as a tuple. Example: (9000, 18000).')
+                                            'must be specified as a tuple. Example: (8150, 18000).')
             if extents is None:
                 raise RequiredArgumentError('For a custom tiff, the extents '
                                             'must be specified.')

@@ -198,7 +198,7 @@ class Cities(object):
         Raises:
             KeyError: When column(s) are not in the list of dataframe columns.
         """
-        bad_columns = set(columns).difference(set(self._dataframe.columns()))
+        bad_columns = set(columns).difference(set(self._dataframe.columns))
         if bad_columns:
             raise KeyError(
                 f'Column(s) not in list of DataFrame columns: {str(bad_columns)}')

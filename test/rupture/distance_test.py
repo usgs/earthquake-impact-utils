@@ -6,11 +6,13 @@ import sys
 
 # third party imports
 from openquake.hazardlib.geo.utils import OrthographicProjection
+from openquake.hazardlib.gsim.abrahamson_2015 import AbrahamsonEtAl2015SInterHigh
 import numpy as np
 import time
+import pytest
 
 # local imports
-from impactutils.rupture.distance import get_distance
+from impactutils.rupture.distance import get_distance, Distance
 from impactutils.rupture.gc2 import _computeGC2
 from impactutils.rupture.origin import Origin
 from impactutils.rupture.quad_rupture import QuadRupture
@@ -73,7 +75,8 @@ def test_san_fernando():
                       rup._lat[~np.isnan(rup._lat)])
 
     # Calculate U and T
-    dtypes = ['U', 'T']
+    dtypes = ['repi', 'rhypo', 'rjb', 'rrup',
+              'rx', 'ry', 'ry0', 'U', 'T', 'rvolc']
     dists = get_distance(dtypes, lats, lons, dep, rup)
 
     targetU = np.array(
@@ -146,7 +149,55 @@ def test_san_fernando():
     ddict = _computeGC2(rup, lons, lats, dep)
     np.testing.assert_allclose(ddict['T'], targetT, atol=0.01)
     np.testing.assert_allclose(ddict['U'], targetU, atol=0.01)
+    d = Distance(AbrahamsonEtAl2015SInterHigh(), lats, lons, dep, rup)
+
+
+def test_exceptions():
+    # This is a challenging rupture due to overlapping and discordant
+    # segments, as brought up by Graeme Weatherill. Our initial
+    # implementation put the origin on the wrong side of the rupture.
+    x0 = np.array([7.1845, 7.8693])
+    y0 = np.array([-10.3793, -16.2096])
+    z0 = np.array([3.0000, 0.0000])
+    x1 = np.array([-7.8506, -7.5856])
+    y1 = np.array([-4.9073, -12.0682])
+    z1 = np.array([3.0000, 0.0000])
+    x2 = np.array([-4.6129, -5.5149])
+    y2 = np.array([3.9887, -4.3408])
+    z2 = np.array([16.0300, 8.0000])
+    x3 = np.array([10.4222, 9.9400])
+    y3 = np.array([-1.4833, -8.4823])
+    z3 = np.array([16.0300, 8.0000])
+
+    epilat = 34.44000
+    epilon = -118.41000
+    proj = OrthographicProjection(
+        epilon - 1, epilon + 1, epilat + 1, epilat - 1)
+    lon0, lat0 = proj(x0, y0, reverse=True)
+    lon1, lat1 = proj(x1, y1, reverse=True)
+    lon2, lat2 = proj(x2, y2, reverse=True)
+    lon3, lat3 = proj(x3, y3, reverse=True)
+
+    # Rupture requires an origin even when not used:
+    origin = Origin({'id': 'test', 'lat': 0, 'lon': 0,
+                     'depth': 5.0, 'mag': 7.0, 'netid': '',
+                     'network': '', 'locstring': '',
+                     'time': HistoricTime.utcfromtimestamp(int(time.time()))})
+
+    rup = QuadRupture.fromVertices(
+        lon0, lat0, z0, lon1, lat1, z1, lon2, lat2, z2, lon3, lat3, z3,
+        origin)
+
+    target = "valid or is not implemented"
+    with pytest.raises(NotImplementedError, match=target) as a:
+        get_distance('invalid', 32, 105, 'dep', rup, dx=0.5)
+
+    target = "must have the same shape"
+    with pytest.raises(Exception, match=target) as a:
+        get_distance('rx', np.asarray([32]), np.asarray(
+            [105, 102]), 'dep', rup, dx=0.5)
 
 
 if __name__ == "__main__":
     test_san_fernando()
+    test_exceptions()

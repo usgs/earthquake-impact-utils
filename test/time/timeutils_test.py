@@ -8,9 +8,13 @@ import shutil
 import sys
 import tempfile
 
+# third party imports
+import pytest
+
 # local imports
+from impactutils.time.ancient_time import HistoricTime
 from impactutils.time.timeutils import \
-    LocalTime, ElapsedTime, TimeConversion, get_recent_timezone_data
+    LocalTime, ElapsedTime, TimeConversion, get_recent_timezone_data, _get_utm_zone
 
 # hack the path so that I can debug these functions if I need to
 homedir = os.path.dirname(os.path.abspath(__file__))  # where is this script?
@@ -19,7 +23,56 @@ impactdir = os.path.abspath(os.path.join(homedir, '..'))
 sys.path.insert(0, impactdir)
 
 
+def test_utm_zone():
+    utm11 = -117.026590
+    utm13 = -105.186813
+    utm14 = -96.099948
+    zone11 = _get_utm_zone(utm11)
+    zone13 = _get_utm_zone(utm13)
+    zone14 = _get_utm_zone(utm14)
+    assert zone11 == 11
+    assert zone13 == 13
+    assert zone14 == 14
+
+    # test ancient time
+    t1 = HistoricTime(1900, 1, 1, 1, 1, 1)
+    assert str(t1.year) == '1900'
+    assert str(t1.month) == '1'
+    assert str(t1.day) == '1'
+    assert str(t1.minute) == '1'
+    assert str(t1.hour) == '1'
+    assert str(t1.second) == '1'
+
+    t2 = HistoricTime(1899, 7, 13, 12, 16, 41)
+    assert str(t2.year) == '1899'
+    assert str(t2.month) == '7'
+    assert str(t2.day) == '13'
+    assert str(t2.hour) == '12'
+    assert str(t2.minute) == '16'
+    assert str(t2.second) == '41'
+
+    t3 = t2.strftime('%Y-%m-%d')
+    assert t3 == '1899-07-13'
+
+    with pytest.raises(ValueError) as a:
+        t2.strftime('%c, %x, %Y')
+
+
 def test_time_conversion():
+    # non default
+    datadir = os.path.abspath(os.path.join(
+        homedir, '..', '..', 'impactutils', 'data'))
+    tiffile = os.path.join(datadir, 'combined-raster-with-oceans002.tif')
+    jsonfile = os.path.join(datadir, 'country-time-codes.json')
+    extent = {
+        "Upper Left": (-180., 83.),
+        "Lower Left": (-180., -80.),
+        "Upper Right": (180., 83.),
+        "Lower Right": (180., -80.)
+    }
+    tc = TimeConversion(tiff=tiffile, raster_shape=(8150, 18000),
+                        extents=extent, resolution=(0.02, 0.02),
+                        timezone_coding=jsonfile)
     # test major cities in the world
     top_cities = [[34.6937, 135.5023], [23.8103, 90.4125], [39.9042, 116.4074],
                   [19.0760, 72.8777], [30.0444, 31.2357], [19.4326, -99.1332],
@@ -384,8 +437,9 @@ def test_elapsed():
 
 
 if __name__ == '__main__':
+    test_utm_zone()
     test_time_conversion()
     if len(sys.argv) > 1:
         shpfile = sys.argv[1]
-    _test_local_time(shapefile=shpfile)
+        _test_local_time(shapefile=shpfile)
     test_elapsed()

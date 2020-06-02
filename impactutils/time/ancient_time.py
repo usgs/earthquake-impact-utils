@@ -30,7 +30,7 @@ class Specifier(str):
 
 class HistoricTime(datetime):
 
-    def strftime(self, format):
+    def strftime(self, format, force=False):
         year = self.year
         if year >= 1900:
             return super(HistoricTime, self).strftime(format)
@@ -50,12 +50,3 @@ class HistoricTime(datetime):
         assert (future_year % 100) == (year %
                                        100)  # last two digits are the same
         return result
-
-
-if __name__ == "__main__":
-    t1 = HistoricTime(1900, 1, 1, 1, 1, 1)
-    print(t1.strftime('%Y-%m-%d %H:%M:%S'))
-    t2 = HistoricTime(1899, 7, 13, 12, 16, 41)
-    print(t2.strftime('%Y-%m-%d %H:%M:%S'))
-    t3 = HistoricTime.strptime('1899-01-01', '%Y-%m-%d')
-    print(t3.strftime('%Y-%m-%d'))
