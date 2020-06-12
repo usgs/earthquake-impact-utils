@@ -15,12 +15,12 @@ shakedir = os.path.abspath(os.path.join(homedir, '..', '..'))
 sys.path.insert(0, shakedir)
 
 
-def send_test(smtp_servers, sender, recipients):
+def send_test(smtp_server, sender, recipients):
     subject = 'Testing...'
     message = 'This is a test message.'
     cancel_msg = 'This is a cancel message.'
     zip_file = 'test.zip'
-    props = {'smtp_servers': smtp_servers,
+    props = {'smtp_servers': [smtp_server],
              'sender': sender,
              'subject': subject,
              'recipients': recipients,
@@ -60,11 +60,29 @@ def bcc_test(smtp_server, sender, max_bcc, recipients, primary_recipient):
     print(sent)
 
 
+def cancel_test(smtp_server, sender, recipients):
+    subject = 'Testing...'
+    message = 'This is a test message.'
+    props = {'smtp_servers': [smtp_server],
+             'sender': sender,
+             'subject': subject,
+             'recipients': recipients,
+             'max_bcc': max_bcc,
+             'primary_recipient': primary_recipient,
+             'message': message}
+    sender = EmailSender(properties=props)
+    sender.cancel(cancel_content='This is a delete message')
+
+
 if __name__ == '__main__':
     smtp_server = sys.argv[1]
     sender = sys.argv[2]
     max_bcc = int(sys.argv[3])
     primary_recipient = sys.argv[4]
-    recipients = sys.argv[5:]
-    # send_test([smtp_server],sender,recipients)
+    if len(sys.argv) > 5:
+        recipients = sys.argv[5:]
+    else:
+        recipients = [primary_recipient]
+    cancel_test(smtp_server, sender, recipients)
+    send_test(smtp_server, sender, recipients)
     bcc_test(smtp_server, sender, max_bcc, recipients, primary_recipient)

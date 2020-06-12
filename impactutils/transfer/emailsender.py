@@ -226,10 +226,25 @@ class EmailSender(Sender):
         # send a cancel message to all recipients
         sender = self._properties['sender']
         subject = self._properties['subject']
-        text = cancel_content
-        address_tuples = _split_addresses(self._properties['recipients'])
+
+        max_bcc = MAX_BCC
+        if 'max_bcc' in self._properties:
+            max_bcc = self._properties['max_bcc']
+
+         # if using Bcc, try to maintain privacy between recipients by using
+        # either an empty string (default) or use the primary_recipient
+        # property, if set.
+        primary_recipient = None
+        if max_bcc:
+            if 'primary_recipient' in self._properties:
+                primary_recipient = self._properties['primary_recipient']
+            else:
+                primary_recipient = ''
+
+        address_tuples = _split_addresses(self._properties['recipients'],
+                                          max_bcc,
+                                          primary_recipient)
         smtp_servers = self._properties['smtp_servers']
-        attachments = []
         if cancel_content is None:
             cancel_content = DEFAULT_CANCEL_MSG
         for address, bcc in address_tuples:
@@ -261,7 +276,7 @@ def _split_addresses(recipients, max_bcc, primary_recipient):
     tuples = []
     if max_bcc == 0:
         for recipient in recipients:
-            tuples.append((recipient, None))
+            tuples.append((recipient, []))
         return tuples
     istart = 0
     iend = max_bcc
