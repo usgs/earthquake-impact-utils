@@ -21,3 +21,4 @@ six related repositories:
 The install.sh script installs this package and all dependencies.
 It is regularly tested on OSX and Ubuntu.
 
+<!-- test comment -->

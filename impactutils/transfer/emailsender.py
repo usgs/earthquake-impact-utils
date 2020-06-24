@@ -182,7 +182,7 @@ class EmailSender(Sender):
                             attachments.append(filename)
 
                 if not len(attachments):
-                    msg = MIMEText(text)
+                    msg = MIMEText(text, "utf-8")
                     msg['From'] = sender
                     msg['To'] = address
                     msg['Subject'] = subject
@@ -368,10 +368,11 @@ def _get_encoded_message(address, subject, text, sender, attachments,
         outer['Bcc'] = ', '.join(bcc)
 
     # insert the text into the email as a MIMEText part...
-    firstSubMsg = Message()
-    firstSubMsg["Content-type"] = "text/plain"
-    firstSubMsg["Content-transfer-encoding"] = "7bit"
-    firstSubMsg.set_payload(text)
+    # firstSubMsg = Message()
+    # firstSubMsg["Content-type"] = "text/plain"
+    # firstSubMsg["Content-transfer-encoding"] = "7bit"
+    # firstSubMsg.set_payload(text)
+    firstSubMsg = MIMEText(text)
     outer.attach(firstSubMsg)
 
     for attachment in attachments:

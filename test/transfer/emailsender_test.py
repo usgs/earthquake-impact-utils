@@ -15,8 +15,8 @@ shakedir = os.path.abspath(os.path.join(homedir, '..', '..'))
 sys.path.insert(0, shakedir)
 
 
-def send_test(smtp_server, sender, recipients):
-    subject = 'Testing...'
+def send_test(smtp_server, sender, subject, recipients):
+    # subject = 'Testing...'
     message = 'This is a test message.'
     cancel_msg = 'This is a cancel message.'
     zip_file = 'test.zip'
@@ -28,6 +28,11 @@ def send_test(smtp_server, sender, recipients):
     thisfile = os.path.abspath(__file__)  # where is this script?
     thisdir = os.path.dirname(os.path.abspath(
         __file__))  # what folder are we in?
+
+    # don't send any files
+    sender = EmailSender(properties=props)
+    sender.send()
+    sender.cancel(cancel_content=cancel_msg)
 
     # send a file
     sender = EmailSender(properties=props, local_files=[thisfile])
@@ -79,10 +84,11 @@ if __name__ == '__main__':
     sender = sys.argv[2]
     max_bcc = int(sys.argv[3])
     primary_recipient = sys.argv[4]
-    if len(sys.argv) > 5:
-        recipients = sys.argv[5:]
+    subject = sys.argv[5]
+    if len(sys.argv) > 6:
+        recipients = sys.argv[6:]
     else:
         recipients = [primary_recipient]
     cancel_test(smtp_server, sender, recipients)
-    send_test(smtp_server, sender, recipients)
+    send_test(smtp_server, sender, subject, recipients)
     bcc_test(smtp_server, sender, max_bcc, recipients, primary_recipient)
