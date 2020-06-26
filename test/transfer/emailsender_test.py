@@ -15,6 +15,26 @@ shakedir = os.path.abspath(os.path.join(homedir, '..', '..'))
 sys.path.insert(0, shakedir)
 
 
+def send_no_attachment(smtp_server, sender, recipients):
+    subject = 'Yellow Alert, PAGER V1 279 km SE of Hotan, China'
+    message = ('PAGER Version: 1\n'
+               '279 km SE of Hotan, China\n'
+               'GMT: 2020 / 06 / 25 - 21: 05\n'
+               'MAG: 6.4\n'
+               'LAT: 35.628\n'
+               'LON: 82.452\n'
+               'DEP: 10\n'
+               'ID: us7000abmk')
+    cancel_msg = 'This is a cancel message.'
+    props = {'smtp_servers': [smtp_server],
+             'sender': sender,
+             'subject': subject,
+             'recipients': recipients,
+             'message': message}
+    sender = EmailSender(properties=props)
+    sender.send()
+
+
 def send_test(smtp_server, sender, recipients):
     subject = 'Testing...'
     message = 'This is a test message.'
@@ -83,6 +103,7 @@ if __name__ == '__main__':
         recipients = sys.argv[5:]
     else:
         recipients = [primary_recipient]
+    send_no_attachment(smtp_server, sender, recipients)
     cancel_test(smtp_server, sender, recipients)
     send_test(smtp_server, sender, recipients)
     bcc_test(smtp_server, sender, max_bcc, recipients, primary_recipient)

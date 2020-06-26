@@ -182,7 +182,7 @@ class EmailSender(Sender):
                             attachments.append(filename)
 
                 if not len(attachments):
-                    msg = MIMEText(text, "utf-8")
+                    msg = MIMEText(text)
                     msg['From'] = sender
                     msg['To'] = address
                     msg['Subject'] = subject
