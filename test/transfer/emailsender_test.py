@@ -15,8 +15,28 @@ shakedir = os.path.abspath(os.path.join(homedir, '..', '..'))
 sys.path.insert(0, shakedir)
 
 
-def send_test(smtp_server, sender, subject, recipients):
-    # subject = 'Testing...'
+def send_no_attachment(smtp_server, sender, recipients):
+    subject = 'Yellow Alert, PAGER V1 279 km SE of Hotan, China'
+    message = ('PAGER Version: 1\n'
+               '279 km SE of Hotan, China\n'
+               'GMT: 2020 / 06 / 25 - 21: 05\n'
+               'MAG: 6.4\n'
+               'LAT: 35.628\n'
+               'LON: 82.452\n'
+               'DEP: 10\n'
+               'ID: us7000abmk')
+    cancel_msg = 'This is a cancel message.'
+    props = {'smtp_servers': [smtp_server],
+             'sender': sender,
+             'subject': subject,
+             'recipients': recipients,
+             'message': message}
+    sender = EmailSender(properties=props)
+    sender.send()
+
+
+def send_test(smtp_server, sender, recipients):
+    subject = 'Testing...'
     message = 'This is a test message.'
     cancel_msg = 'This is a cancel message.'
     zip_file = 'test.zip'
@@ -28,11 +48,6 @@ def send_test(smtp_server, sender, subject, recipients):
     thisfile = os.path.abspath(__file__)  # where is this script?
     thisdir = os.path.dirname(os.path.abspath(
         __file__))  # what folder are we in?
-
-    # don't send any files
-    sender = EmailSender(properties=props)
-    sender.send()
-    sender.cancel(cancel_content=cancel_msg)
 
     # send a file
     sender = EmailSender(properties=props, local_files=[thisfile])
@@ -84,11 +99,11 @@ if __name__ == '__main__':
     sender = sys.argv[2]
     max_bcc = int(sys.argv[3])
     primary_recipient = sys.argv[4]
-    subject = sys.argv[5]
-    if len(sys.argv) > 6:
-        recipients = sys.argv[6:]
+    if len(sys.argv) > 5:
+        recipients = sys.argv[5:]
     else:
         recipients = [primary_recipient]
+    send_no_attachment(smtp_server, sender, recipients)
     cancel_test(smtp_server, sender, recipients)
-    send_test(smtp_server, sender, subject, recipients)
+    send_test(smtp_server, sender, recipients)
     bcc_test(smtp_server, sender, max_bcc, recipients, primary_recipient)
