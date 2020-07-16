@@ -225,13 +225,18 @@ class EmailSender(Sender):
         """
         # send a cancel message to all recipients
         sender = self._properties['sender']
-        subject = self._properties['subject']
+        if 'cancel_subject' in self._properties:
+            subject = self._properties['cancel_subject']
+        else:
+            subject = self._properties['subject']
+        if 'cancel_content' in self._properties:
+            cancel_content = self._properties['cancel_content']
 
         max_bcc = MAX_BCC
         if 'max_bcc' in self._properties:
             max_bcc = self._properties['max_bcc']
 
-         # if using Bcc, try to maintain privacy between recipients by using
+        # if using Bcc, try to maintain privacy between recipients by using
         # either an empty string (default) or use the primary_recipient
         # property, if set.
         primary_recipient = None
