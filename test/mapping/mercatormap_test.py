@@ -27,21 +27,18 @@ def test_mmap(outfile=None, bounds=None):
     figsize = (7, 7)
     cities = Cities.fromDefault()
     mmap = MercatorMap(bounds, figsize, cities, padding=0.5)
-    fig = mmap.figure
     ax = mmap.axes
 
     # TODO -- Travis hangs here so commenting out stuff so it doesn't hang.
     # Should sort out issue to fully test this module.
 
-#    fig.canvas.draw()
-
-#    ax.coastlines(resolution="10m", zorder=10)
-#    plt.show()
-#    mmap.drawCities(shadow=True)
-#    if outfile:
-#        plt.savefig(outfile)
-#        print(f"Figure saved to {outfile}")
-#    return
+    # fig.canvas.draw()
+    ax.coastlines(resolution="10m", zorder=10)
+    # plt.show()
+    mmap.drawCities(shadow=True)
+    if outfile:
+        plt.savefig(outfile)
+        print(f"Figure saved to {outfile}")
 
 
 if __name__ == '__main__':

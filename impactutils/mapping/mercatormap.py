@@ -353,7 +353,7 @@ class MercatorMap(object):
         """
         th = self.renderRow(row, fontname, fontsize, shadow, zorder, test=True)
         bbox = th.get_window_extent(self._figure.canvas.get_renderer())
-        axbox = bbox.inverse_transformed(self._ax_clone.transData)
+        axbox = bbox.transformed(self._ax_clone.transData.inverted())
         left, bottom, right, top = axbox.extents
         xpad = (right - left) * self._padding
         ypad = (top - bottom) * self._padding
