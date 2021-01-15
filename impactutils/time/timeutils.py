@@ -7,6 +7,7 @@ import os.path
 from urllib import parse, request
 import shutil
 import zipfile
+import pathlib
 
 # third party imports
 import bs4
@@ -76,8 +77,7 @@ def get_recent_timezone_data(outdir):
 
 
 def _get_utm_zone(clon):
-    starts = np.arange(-180, 186, 6)
-    zone = np.where((clon > starts) < 1)[0].min()
+    zone = int((np.floor((clon + 180) / 6) % 60) + 1)
     return zone
 
 
@@ -282,6 +282,85 @@ class LocalTime(object):
 
     def __del__(self):
         self._input.close()
+
+
+class LocalTimeNE(LocalTime):
+    def __init__(self, utctime, lat, lon):
+        """Create an instance of a LocalTime object using NaturalEarth data.
+
+        Args:
+            shpfile: Path to time zones shapefile found on this page:
+                https://www.naturalearthdata.com/downloads/10m-cultural-vectors/timezones/
+            utctime: Python datetime object in UTC.
+            lat: Latitude where local time is to be determined.
+            lon: Longitude where local time is to be determined.
+        """
+        shpfile = (pathlib.Path(__file__).parent / '..' / '..' / 'impactutils' /
+                   'data' / 'ne_10m_time_zones.shp').resolve()
+        self._input = collection(str(shpfile), 'r')
+        self._lat = lat
+        self._lon = lon
+        self._utctime = utctime
+        self._find_time_zone(utctime, lat, lon)
+
+    def _find_time_zone(self, utctime, lat, lon):
+        local_time = None
+        for f in self._input:
+            zonepoly = shape(f['geometry'])
+            timezone = f['properties']['tz_name1st']
+            # print(f'\tTimezone: {timezone}')
+            xmin, ymin, xmax, ymax = zonepoly.bounds
+            if (xmax - xmin) > 180:  # xmin is not the left edge
+                txmax = xmax
+                xmax = xmin
+                xmin = txmax
+            if xmin > xmax:
+                xmin -= 360
+            clon = (xmin + xmax) / 2
+            hem = 'N'
+            if lat < 0:
+                hem = 'S'
+            utmzone = _get_utm_zone(clon)
+            utmstr = (f'+proj=utm +zone={int(utmzone):d}{hem} '
+                      '+ellps=WGS84 +datum=WGS84 +units=m +no_defs')
+            geostr = '+proj=longlat +datum=WGS84 +ellps=WGS84'
+            projection = partial(
+                pyproj.transform,
+                pyproj.Proj(geostr),
+                pyproj.Proj(utmstr))
+
+            pshape = transform(projection, zonepoly)
+            ppoint = transform(projection, Point(lon, lat))
+            try:
+                is_inside = pshape.contains(ppoint)
+            except Exception:
+                try:
+                    is_inside = zonepoly.contains(Point(lon, lat))
+                except Exception:
+                    is_inside = False
+
+            if is_inside:
+                try:
+                    mytz = pytz.timezone(timezone)
+                except Exception:
+                    timezone = 'undefined'
+                if timezone != 'undefined':
+                    mytz = pytz.timezone(timezone)
+                    utcoffset = mytz.utcoffset(utctime)
+                    local_time = utctime + utcoffset
+                else:
+                    offset_hours = f['properties']['zone']
+                    utcoffset = timedelta(seconds=offset_hours * 3600)
+                    local_time = utctime + utcoffset
+                    timezone = 'undefined'
+                break
+        if local_time is None:
+            # this is effectively nautical time as the ultimate failover.
+            utcoffset = round(lon / 15)
+            local_time = utctime + timedelta(seconds=utcoffset * 3600)
+        self._local_time = local_time
+        self._timezone_str = timezone
+        self._utcoffset = utcoffset
 
 
 class TimeConversion(object):
