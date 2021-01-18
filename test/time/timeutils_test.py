@@ -9,8 +9,10 @@ import sys
 import tempfile
 
 # local imports
-from impactutils.time.timeutils import \
-    LocalTime, ElapsedTime, TimeConversion, get_recent_timezone_data
+from impactutils.time.timeutils import (LocalTime, ElapsedTime,
+                                        TimeConversion,
+                                        LocalTimeNE,
+                                        get_recent_timezone_data)
 
 # hack the path so that I can debug these functions if I need to
 homedir = os.path.dirname(os.path.abspath(__file__))  # where is this script?
@@ -383,9 +385,34 @@ def test_elapsed():
         assert compstr == estr
 
 
+def test_local_time_ne():
+    utctime = datetime(2021, 1, 8, 0, 28, 49)
+    points = {
+        'Kermadec Islands': (-29.478, 178.702, 13),
+        'New York City': (40.741895, -73.989308, -5),
+        'Los Angeles': (33.9074, -118.2704, -8),
+        'Capetown': (-33.9196, 18.3302, 2),
+        'Antarctic': (-68.1215, 52.7888, 4),
+        'Arctic': (83.5622, 7.1719, 0),
+        'Southern Ocean': (-61.16, -174.45, -12),
+        'Vostok Station': (-78.51, 107.30, 6),
+        'Norfolk Island': (-29.0, 168.3, 12),
+        'Helsinki': (61.2, 25.5, 2),
+        'Kaliningrad': (54.83, 20.94, 2),
+    }
+    for location, mtuple in points.items():
+        lat, lon, offset_hours = mtuple
+        dt_offset = timedelta(seconds=3600 * offset_hours)
+        print(location)
+        ltime = LocalTimeNE(utctime, lat, lon)
+        offset = ltime.getUTCOffset()
+        assert offset == dt_offset
+
+
 if __name__ == '__main__':
+    test_local_time_ne()
     test_time_conversion()
     if len(sys.argv) > 1:
         shpfile = sys.argv[1]
-    _test_local_time(shapefile=shpfile)
+        _test_local_time(shapefile=shpfile)
     test_elapsed()
