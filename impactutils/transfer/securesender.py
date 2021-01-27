@@ -3,6 +3,7 @@
 # stdlib imports
 import os.path
 import datetime
+import getpass
 
 # depends on https://github.com/jbardin/scp.py
 # pip install git+git://github.com/jbardin/scp.py.git
@@ -71,7 +72,8 @@ class SecureSender(Sender):
         # make sure the remote system has directory or it can be created.
         res = self._make_remote_folder(scp, ssh, remote_folder)
         if not res:
-            msg = f'Unable to create remote folder {remote_folder} on host {remote_host}'
+            msg = (f'Unable to create remote folder {remote_folder} '
+                   f'on host {remote_host}')
             raise Exception(msg)
 
         # do the copying
@@ -101,7 +103,8 @@ class SecureSender(Sender):
                            for r, d, files in os.walk(self._local_directory)])
         scp.close()
         ssh.close()
-        return (nfiles, f'{int(nfiles):d} files sent to remote host {remote_host}')
+        msg = f'{int(nfiles):d} files sent to remote host {remote_host}'
+        return (nfiles, msg)
 
     def cancel(self, cancel_content=None):
         """
@@ -126,10 +129,13 @@ class SecureSender(Sender):
         exists = not int(stdout.read().decode('utf-8').strip())
         if not exists:
             err = stderr1.read().decode('utf-8').strip()
-            fmt = f'Could not create {cancelfile} file on remote_host {remote_host} due to error: {err}'
+            fmt = (f'Could not create {cancelfile} file on '
+                   f'remote_host {remote_host} due to error: {err}')
             raise Exception(fmt)
 
-        return (f'A .cancel file has been placed in remote directory {remote_folder}.')
+        msg = ('A .cancel file has been placed in remote '
+               f'directory {remote_folder}.')
+        return (msg)
 
     def _connect(self):
         """Initiate an ssh connection with properties passed to constructor.
@@ -144,13 +150,19 @@ class SecureSender(Sender):
         # load hosts found in ~/.ssh/known_hosts
         # should we not assume that the user has these configured already?
         ssh.load_system_host_keys()
+        remote_user = getpass.getuser()
+        if 'remote_user' in self._properties:
+            remote_user = self._properties['remote_user']
         try:
             ssh.connect(self._properties['remote_host'],
+                        username=remote_user,
                         key_filename=self._properties['private_key'],
                         compress=True)
         except Exception as obj:
-            raise Exception(
-                f"Could not connect with private key file {self._properties['private_key']}")
+            msg = ("Could not connect with private key "
+                   f"file {self._properties['private_key']}: "
+                   f"Error '{str(obj)}")
+            raise Exception(msg)
         return ssh
 
     def _copy_file_with_path(self, scp, ssh, local_file, remote_folder,
@@ -196,7 +208,8 @@ class SecureSender(Sender):
             if not isdir:
                 res = self._make_remote_folder(scp, ssh, root)
                 if not res:
-                    fmt = (f'Could not copy local file {local_file} to folder {remote_folder} '
+                    fmt = (f'Could not copy local file {local_file} '
+                           f'to folder {remote_folder} '
                            f'on host {remote_host}')
                     raise Exception(fmt)
 
@@ -241,7 +254,7 @@ class SecureSender(Sender):
             Boolean indicating success or failure.
         """
         exists, isdir = self._check_remote_folder(ssh, remote_folder)
-        chk_cmd2 = f'[ -d {remote_folder} ];echo $?'
+        chk_cmd1 = f'[ -d {remote_folder} ];echo $?'
         if not isdir:
             if exists:
                 rm_cmd = f'rm {remote_folder}'
