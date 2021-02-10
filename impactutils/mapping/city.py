@@ -229,8 +229,8 @@ class Cities(object):
         # TODO: figure out what to do with a meridian crossing?
         newdf = self._dataframe.copy()
         xmin, xmax, ymin, ymax = bounds
-        newdf = newdf.loc[(newdf['lat'] > ymin) & (newdf['lat'] <= ymax) &
-                          (newdf['lon'] > xmin) & (newdf['lon'] <= xmax)]
+        newdf = newdf.loc[(newdf['lat'] >= ymin) & (newdf['lat'] <= ymax) &
+                          (newdf['lon'] >= xmin) & (newdf['lon'] <= xmax)]
         return type(self)(newdf)
 
     def limitByRadius(self, lat, lon, radius):
