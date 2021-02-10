@@ -168,7 +168,15 @@ def draw_scale(ax, pos='ll', padx=0.1, pady=0.1, font_size=None, units='km',
     if not isinstance(ax.projection, cartopy.crs.PlateCarree):
         if 'units' in ax.projection.proj4_params:
             proj_units = ax.projection.proj4_params['units']
-            dataunits_to_meters = UNITS[proj_units]
+            # dataunits_to_meters = UNITS[proj_units]
+            # Scalebar fix contributed by github user 'tsonne'
+            lonlat_ext = ax.get_extent(cartopy.crs.PlateCarree())
+            clat = (lonlat_ext[2] + lonlat_ext[3]) / 2.
+            dataunits_to_meters = UNITS[proj_units] * \
+                (np.pi * 6378137 * np.cos(np.deg2rad(clat)) /
+                 (180 * np.sqrt(1 - ((6378137**2 - 6356752**2) / 6378137**2) *
+                                np.sin(np.deg2rad(clat))**2))) / \
+                (111.32 * 10**3)
         else:
             proj_units = 'm'
             dataunits_to_meters = UNITS[proj_units]
