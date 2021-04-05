@@ -11,6 +11,8 @@ from paramiko import SSHClient
 from impactutils.extern.scp.scp import SCPClient
 from .sender import Sender
 
+DEFAULT_PORT = 22
+
 
 class SecureSender(Sender):
     '''Class for sending files to a remote Unix-like system using ssh.
@@ -43,6 +45,9 @@ class SecureSender(Sender):
         should be copied to.
       - private_key Path to local RSA/DSA private key file which has been
         configured on the remote system.
+    Optional properties:
+      - remote_port: This defaults to 22, set to whatever port your
+                     remote system has opened up for SSH access.
     '''
     _required_properties = ['private_key', 'remote_host', 'remote_directory']
     _optional_properties = []
@@ -153,8 +158,12 @@ class SecureSender(Sender):
         remote_user = getpass.getuser()
         if 'remote_user' in self._properties:
             remote_user = self._properties['remote_user']
+        remote_port = DEFAULT_PORT
+        if 'remote_port' in self._properties:
+            remote_port = self._properties['remote_port']
         try:
             ssh.connect(self._properties['remote_host'],
+                        port=remote_port,
                         username=remote_user,
                         key_filename=self._properties['private_key'],
                         compress=True)
