@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 
 # local imports
-from impactutils.exceptions import ConsistentLengthError, UnsupportedArgumentError
+from impactutils.exceptions import (ConsistentLengthError,
+                                    UnsupportedArgumentError)
 
 
 MMI = {'z0': np.arange(0, 10),
@@ -89,7 +90,8 @@ DEFAULT_NCOLORS = 256
 
 
 class ColorPalette(object):
-    def __init__(self, name, z0, z1, rgb0, rgb1, resolution=None, nan_color=0, is_log=False):
+    def __init__(self, name, z0, z1, rgb0, rgb1,
+                 resolution=None, nan_color=0, is_log=False):
         """Construct a DataColorMap from input Z values and RGB specs.
 
         Args:
@@ -109,8 +111,9 @@ class ColorPalette(object):
         """
         # validate that lengths are all identical
         if len(z0) != len(z1) != len(rgb0) != len(rgb1):
-            raise ConsistentLengthError('Lengths of input sequences to ColorPalette() '
-                                      'must be identical.')
+            msg = ('Lengths of input sequences to ColorPalette() '
+                   'must be identical.')
+            raise ConsistentLengthError(msg)
         self._is_log = is_log
         z0 = np.array(z0)
         z1 = np.array(z1)
@@ -207,6 +210,79 @@ class ColorPalette(object):
         """
         return list(PALETTES.keys())
 
+    def write(self, filename, resolution=None):
+        """Save a ColorPalette to a CPT file.
+
+        ColorPalette files will be formatted as below:
+        --------------------------------------------
+        #This file is a test file for ColorPalette.
+        #Lines beginning with pound signs are comments.
+        #Lines beginning with pound signs followed by a "$" are variable
+        #definition lines.
+        #For example, the following line defines a variable called nan_color.
+        #$nan_color: 0,0,0,0
+        #$name: test
+        #$resolution: 0.01
+        Z0 R0  G0  B0  Z1  R1  G1  B1
+        0   0   0   0   1  85  85  85
+        1  85  85  85   2 170 170 170
+        2 170 170 170   3 255 255 255
+        --------------------------------------------
+
+        These files contain all the information needed to assign colors to any
+        data value. The data values are in the Z0/Z1 columns, the colors
+        (0-255) are in the RX/GX/BX columns. In the sample file above, a data
+        value of 0.5 would be assigned the color (42.5/255,42.5/255,42.5/255).
+
+        Args:
+            filename (str): String file name pointing to a file formatted as 
+                            above.
+            resolution (float): Increment between levels of Z values.
+        """
+        if resolution is None:
+            resolution = (self.vmax - self.vmin) / self.cmap.N
+        nan_colors = [str(int(nanc)) for nanc in self.nan_color * 255]
+        nan_str = ','.join(nan_colors)
+        start_lines = ['#File written by ColorPalette class.\n',
+                       '#Code can be found here: \n',
+                       '#https://github.com/usgs/earthquake-impact-utils\n',
+                       '#under impactutils/colors/cpalette.py\n'
+                       f'#$nan_color: {nan_str}\n',
+                       f'#$name: {self.cmap.name}\n'
+                       ]
+        cdict = {'Z0': [],
+                 'R0': [],
+                 'G0': [],
+                 'B0': [],
+                 'Z1': [],
+                 'R1': [],
+                 'G1': [],
+                 'B1': [],
+                 }
+        zvalues = np.arange(self.vmin, self.vmax, resolution)
+        for zvalue in zvalues:
+            zmin = zvalue
+            zmax = zvalue + resolution
+            rgb0 = self.getDataColor(zmin, color_format='255')
+            rgb1 = self.getDataColor(zmax, color_format='255')
+            cdict['Z0'].append(zmin)
+            cdict['R0'].append(rgb0[0])
+            cdict['G0'].append(rgb0[1])
+            cdict['B0'].append(rgb0[2])
+
+            cdict['Z1'].append(zmax)
+            cdict['R1'].append(rgb1[0])
+            cdict['G1'].append(rgb1[1])
+            cdict['B1'].append(rgb1[2])
+        dataframe = pd.DataFrame(cdict)
+        pd.set_option("precision", 4)
+        dstr = dataframe.to_string(buf=None, index=False,
+                                   float_format='%.4f')
+        with open(filename, 'wt') as fh:
+            fh.seek(0)
+            fh.writelines(start_lines)
+            fh.write(dstr)
+
     @classmethod
     def fromFile(cls, filename):
         """Load a ColorPalette from a file.
@@ -263,7 +339,8 @@ class ColorPalette(object):
                    nan_color=nan_color, resolution=resolution)
 
     @classmethod
-    def fromColorMap(cls, name, z0, z1, cmap, resolution=None, nan_color=0, is_log=False):
+    def fromColorMap(cls, name, z0, z1, cmap,
+                     resolution=None, nan_color=0, is_log=False):
         """Construct a ColorPalette from ranges of Z values and a Matplotlib Colormap.
 
         Args:
@@ -271,19 +348,21 @@ class ColorPalette(object):
             z0 (sequence): Sequence of z0 values.
             z1 (sequence): Sequence of z1 values.
             cmap (Colormap): Matplotlib Colormap object.
-            resolution (float): Desired Resolution of the data values in data units.
-                For example, the preset population color map has a resolution
-                of 1.0, meaning that we want to be able to distinguish between
-                color values associated with a difference of 1 person. This
-                sets the number of colors to be:
+            resolution (float): Desired Resolution of the data values in data
+                units. For example, the preset population color map has a
+                resolution of 1.0, meaning that we want to be able to
+                distinguish between color values associated with a
+                difference of 1 person. This sets the number of colors to be:
                     `max(256,int((max(z1)-min(z0))/resolution))`
-            nan_color (0 or 4 sequence): Either 0 or RGBA quadruplet (A is for Alpha, where 0 is
+            nan_color (0 or 4 sequence): Either 0 or RGBA quadruplet (A is for
+                       Alpha, where 0 is
                 transparent, and 255 is opaque.)
         """
         # use the whole dynamic range of the colormap
         if len(z0) != len(z1):
-            raise ConsistentLengthError('Lengths of input sequences to '
-                                      'ColorPalette.fromColorMap() must be identical.')
+            msg = ('Lengths of input sequences to '
+                   'ColorPalette.fromColorMap() must be identical.')
+            raise ConsistentLengthError(msg)
         zmin = np.min(z0)
         zmax = np.max(z1)
         rgb0 = []
@@ -297,7 +376,9 @@ class ColorPalette(object):
             rgb_top = np.round(np.array(cmap(znorm1)[0:3]) * 255)
             rgb1.append(rgb_top.tolist())
 
-        return cls(name, z0, z1, rgb0, rgb1, resolution=resolution, nan_color=nan_color, is_log=is_log)
+        return cls(name, z0, z1, rgb0, rgb1,
+                   resolution=resolution, nan_color=nan_color,
+                   is_log=is_log)
 
     @property
     def vmin(self):
@@ -357,7 +438,8 @@ class ColorPalette(object):
                 - '255' Return a 4 element tuple of (R,G,B,A) with integer
                   values betwen 0 and 255.
                 - 'hex' Return an HTML-style hex color specification (#RRGGBB).
-                - 'array' Return an RGBA array of the same 1 or 2D dimensions as value.
+                - 'array' Return an RGBA array of the same 1 or 2D dimensions
+                   as value.
 
         Returns:
             The color value associated with the input data value.
@@ -379,8 +461,8 @@ class ColorPalette(object):
             return rgba
         elif color_format == 'hex':
             color255 = [int(c * 255) for c in color]
-            hexcolor = (
-                f'#{color255[0]:02x}{color255[1]:02x}{color255[2]:02x}').upper()
+            str_fmt = f'#{color255[0]:02x}{color255[1]:02x}{color255[2]:02x}'
+            hexcolor = (str_fmt).upper()
             return hexcolor
         else:
             raise AttributeError(
