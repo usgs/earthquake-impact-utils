@@ -8,9 +8,12 @@ import shutil
 # third party imports
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+from matplotlib.colors import ListedColormap
 
 # local imports
 from impactutils.colors.cpalette import ColorPalette
+
 
 TEST_FILE = """#This file is a test file for ColorPalette.
 # Lines beginning with pound signs are comments.
@@ -145,7 +148,49 @@ def test_file():
             shutil.rmtree(tdir)
 
 
+def test_cpt():
+    rm = 100  # number of lines to remove on black end of magma_r
+    # how much at the zero end should be *just* white before transitioning to
+    # meet colors
+    ad = 50
+    magma_cpt = cm.get_cmap('magma_r', 512)  # start with magma_r
+    white_bit = np.array([255 / 256, 250 / 256, 250 / 256, 1]
+                         )  # create array of white
+    slip_cpt = magma_cpt(np.linspace(0, 1, 512))  # initialize slip_cpt
+    # move beginning up to remove black end
+    slip_cpt[rm:, :] = slip_cpt[0:-rm, :]
+    # gradient from white to beginning of new magma
+    r_s = np.linspace(white_bit[0], slip_cpt[rm][0], rm - ad)
+    g_s = np.linspace(white_bit[1], slip_cpt[rm][1], rm - ad)
+    b_s = np.linspace(white_bit[2], slip_cpt[rm][2], rm - ad)
+    slip_cpt[ad:rm, :][:, 0] = r_s
+    slip_cpt[ad:rm, :][:, 1] = g_s
+    slip_cpt[ad:rm, :][:, 2] = b_s
+    slip_cpt[:ad, :] = white_bit
+    slipmap = ListedColormap(slip_cpt)
+    z0 = np.arange(0, 300, 1)
+    z1 = np.arange(1, 301, 1)
+    ncolors = 64
+    resolution = (z1.max() - z0.min()) / ncolors
+    name = 'test'
+    cpt = ColorPalette.fromColorMap(name, z0, z1,
+                                    slipmap, resolution=resolution)
+    try:
+        tdir = tempfile.mkdtemp()
+        tfile = os.path.join(tdir, 'test.cpt')
+        cpt.write(tfile)
+        cpt2 = ColorPalette.fromFile(tfile)
+        np.testing.assert_almost_equal(cpt.getDataColor(150)[0],
+                                       cpt2.getDataColor(150)[0])
+    except:
+        pass
+    finally:
+        if os.path.isdir(tdir):
+            shutil.rmtree(tdir)
+
+
 if __name__ == '__main__':
+    test_cpt()
     test_presets()
     test_simplemap()
     test_file()
