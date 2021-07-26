@@ -3,6 +3,7 @@ import json
 
 # third party imports
 import h5py
+import numpy as np
 
 # local imports
 
@@ -335,6 +336,69 @@ class ShakeMapContainerBase(HDFContainerBase):
     """
     Parent class for InputShakeMapContainer and OutputShakeMapContainer.
     """
+
+    #
+    # Functions overriding ones in the parent class
+    #
+
+    def setArray(self, groups, name, array, metadata=None, compression=True):
+        """
+        Store a numpy array and optional metadata in the HDF file, in group
+        name. If the array if float64 convert it to float32 for storage.
+
+        Args:
+            groups (list): A list of sub groups of the array
+                group leading to 'name'. May be empty.
+            name (str): String name of HDF group under which list will be
+                stored.
+            array (np.ndarray) Numpy array.
+            metadata (dict) Dictionary containing basic types.
+            compression (bool): Boolean indicating whether dataset should be
+                compressed using the gzip algorithm.
+
+        Returns:
+            dataset: The HDF dataset that was written to the file.
+        """
+        #
+        # If the data array is dtype float64, convert it to float 32 and then
+        # hand it to the parent function
+        #
+        if array.dtype == np.float64:
+            array = array.astype(np.float32)
+
+        return super(ShakeMapContainerBase, self).setArray(groups, name,
+                                                           array, metadata,
+                                                           compression)
+
+    def getArray(self, groups, name):
+        """
+        Retrieve an array of data and any associated metadata from a dataset.
+        If array read from file is type float32 it is promoted to float64.
+
+        Args:
+            groups (list): A list of sub groups of the array
+                group leading to 'name'. May be empty.
+            name (str): The name of the dataset holding the data and metadata.
+
+        Returns:
+            tuple: An array of data, and a dictionary of metadata.
+        """
+        #
+        # Read the data with the parent function; if the data array is
+        # dtype float32, convert it to float64 before handing it back to
+        # the caller
+        #
+        (array, metadata) = super(ShakeMapContainerBase,
+                                  self).getArray(groups, name)
+
+        if array.dtype == np.float32:
+            array = array.astype(np.float64)
+
+        return array, metadata
+
+    #
+    # ShakeMap-specific functions
+    #
 
     def setConfig(self, config):
         """
