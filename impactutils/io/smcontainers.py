@@ -598,14 +598,15 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
             raise LookupError(f'No metadata in {self.getFileName()}')
         return self.getDictionary([], 'info.json')
 
-    def setIMTGrids(self, imt_name, imt_mean, mean_metadata,
-                    imt_std, std_metadata, component,
+    def setIMTGrids(self, imt_name, component, imt_mean, mean_metadata,
+                    imt_std, std_metadata, imt_phi=None, imt_tau=None,
                     compression=True):
         """
         Store IMT mean and standard deviation objects as datasets.
 
         Args:
             imt_name (str): Name of the IMT (MMI, PGA, etc.) to be stored.
+            component (str): Component type, i.e. 'Larger','rotd50',etc.
             imt_mean (numpy array): Array of IMT mean values to be stored.
             mean_metadata (dict): Dictionary containing metadata for mean IMT
                 grid.
@@ -613,9 +614,12 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
                 to be stored.
             std_metadata (dict): Dictionary containing metadata for mean IMT
                 grid.
-            component (str): Component type, i.e. 'Larger','rotd50',etc.
+            imt_phi (numpy array): Array of IMT within-event standard
+                deviation values to be stored (None is the default).
+            imt_phi (numpy array): Array of IMT between-event standard
+                deviation values to be stored (None is the default).
             compression (bool): Boolean indicating whether dataset should be
-                compressed using the gzip algorithm.
+                compressed using the gzip algorithm (True by default).
 
         Returns:
             nothing: Nothing.
@@ -628,6 +632,10 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
         sub_groups = ['imts', component, imt_name]
         self.setArray(sub_groups, 'mean', imt_mean, mean_metadata)
         self.setArray(sub_groups, 'std', imt_std, std_metadata)
+        if imt_phi is not None:
+            self.setArray(sub_groups, 'phi', imt_phi, std_metadata)
+        if imt_tau is not None:
+            self.setArray(sub_groups, 'tau', imt_tau, std_metadata)
         return
 
     def getIMTGrids(self, imt_name, component):
@@ -649,6 +657,10 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
                    - std Numpy array for IMT standard deviation values.
                    - std_metadata Dictionary containing any metadata
                      describing standard deviation layer.
+                   - phi Numpy array of IMT within-event standard deviation
+                     values if available (None otherwise).
+                   - tau Numpy array of IMT between-event standard deviation
+                     values if available (None otherwise).
         """
 
         if self.getDataType() != 'grid':
@@ -659,25 +671,39 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
         std_dset, std_metadata = self.getArray(sub_groups, 'std')
         mean_data = mean_dset[()]
         std_data = std_dset[()]
+        try:
+            phi_dset, _ = self.getArray(sub_groups, 'phi')
+            phi_data = phi_dset[()]
+        except LookupError:
+            phi_data = None
+        try:
+            tau_dset, _ = self.getArray(sub_groups, 'tau')
+            tau_data = tau_dset[()]
+        except LookupError:
+            tau_data = None
 
         # create an output dictionary
         imt_dict = {
             'mean': mean_data,
             'mean_metadata': mean_metadata,
             'std': std_data,
-            'std_metadata': std_metadata
+            'std_metadata': std_metadata,
+            'phi': phi_data,
+            'tau': tau_data
         }
         return imt_dict
 
-    def setIMTArrays(self, imt_name, lons, lats, ids,
+    def setIMTArrays(self, imt_name, component, lons, lats, ids,
                      imt_mean, mean_metadata,
                      imt_std, std_metadata,
-                     component, compression=True):
+                     imt_phi=None, imt_tau=None,
+                     compression=True):
         """
         Store IMT mean and standard deviation objects as datasets.
 
         Args:
             imt_name (str): Name of the IMT (MMI, PGA, etc.) to be stored.
+            component (str): Component type, i.e. 'Larger','rotd50',etc.
             lons (Numpy array): Array of longitudes of the IMT data.
             lats (Numpy array): Array of latitudes of the IMT data.
             ids (Numpy array): Array of ID strings corresponding to the
@@ -689,7 +715,10 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
                 to be stored.
             std_metadata (dict): Dictionary containing metadata for mean IMT
                 grid.
-            component (str): Component type, i.e. 'Larger','rotd50',etc.
+            imt_phi (numpy array): Array of IMT within-event standard
+                deviation values to be stored (None is the default).
+            imt_phi (numpy array): Array of IMT between-event standard
+                deviation values to be stored (None is the default).
             compression (bool): Boolean indicating whether dataset should be
                 compressed using the gzip algorithm.
 
@@ -724,6 +753,12 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
                       compression=compression)
         self.setArray(sub_groups, 'std', imt_std, metadata=std_metadata,
                       compression=compression)
+        if imt_phi is not None:
+            self.setArray(sub_groups, 'phi', imt_phi, metadata=std_metadata,
+                          compression=compression)
+        if imt_tau is not None:
+            self.setArray(sub_groups, 'tau', imt_tau, metadata=std_metadata,
+                          compression=compression)
         return
 
     def getIMTArrays(self, imt_name, component):
@@ -734,7 +769,7 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
             imt_name (str): The name of the IMT stored in the container.
 
         Returns:
-            dict: Dictionary containing 7 items:
+            dict: Dictionary containing 9 items:
                    - lons -- array of longitude coordinates
                    - lats -- array of latitude coordinates
                    - ids -- array of IDs corresponding to the coordinates
@@ -744,6 +779,10 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
                    - std -- array of IMT standard deviation values.
                    - std_metadata -- Dictionary containing any metadata
                      describing standard deviation layer.
+                   - phi -- array of IMT within-event standard deviation
+                     values if available (None otherwise).
+                   - tau -- array of IMT between-event standard deviation
+                     values if available (None otherwise).
         """
 
         if self.getDataType() != 'points':
@@ -761,6 +800,16 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
         mean_data = dset[()]
         dset, std_metadata = self.getArray(sub_groups, 'std')
         std_data = dset[()]
+        try:
+            phi_dset, _ = self.getArray(sub_groups, 'phi')
+            phi_data = phi_dset[()]
+        except LookupError:
+            phi_data = None
+        try:
+            tau_dset, _ = self.getArray(sub_groups, 'tau')
+            tau_data = tau_dset[()]
+        except LookupError:
+            tau_data = None
 
         # create an output dictionary
         imt_dict = {
@@ -770,7 +819,9 @@ class ShakeMapOutputContainer(ShakeMapContainerBase):
             'mean': mean_data,
             'mean_metadata': mean_metadata,
             'std': std_data,
-            'std_metadata': std_metadata
+            'std_metadata': std_metadata,
+            'phi': phi_data,
+            'tau': tau_data
         }
         return imt_dict
 
