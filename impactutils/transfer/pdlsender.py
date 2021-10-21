@@ -13,7 +13,7 @@ from .sender import Sender
 from impactutils.io.cmd import get_command_output
 from impactutils.exceptions import PDLError
 
-DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%f'
+DATE_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%f"
 
 
 class PDLSender(Sender):
@@ -49,26 +49,44 @@ class PDLSender(Sender):
       like to pass to PDL.
     """
 
-    _pdlcmd_pieces = ['[JAVA] -jar [JARFILE] --send --status=[STATUS]',
-                      '--source=[SOURCE] --type=[TYPE] --code=[CODE]',
-                      '--eventsource=[EVENTSOURCE] --eventsourcecode=[EVENTSOURCECODE]',
-                      '[PRODUCT_PROPERTIES] [OPTIONAL_PROPERTIES]',
-                      '--privateKey=[PRIVATEKEY]  --configFile=[CONFIGFILE] [FILE] [DIRECTORY]']
-    _pdlcmd = ' '.join(_pdlcmd_pieces)
+    _pdlcmd_pieces = [
+        "[JAVA] -jar [JARFILE] --send --status=[STATUS]",
+        "--source=[SOURCE] --type=[TYPE] --code=[CODE]",
+        "--eventsource=[EVENTSOURCE] --eventsourcecode=[EVENTSOURCECODE]",
+        "[PRODUCT_PROPERTIES] [OPTIONAL_PROPERTIES]",
+        "--privateKey=[PRIVATEKEY]  --configFile=[CONFIGFILE] [FILE] [DIRECTORY]",
+    ]
+    _pdlcmd = " ".join(_pdlcmd_pieces)
 
-    _required_properties = ['java', 'jarfile', 'privatekey', 'configfile',
-                            'source', 'type', 'code',
-                            'eventsource', 'eventsourcecode']
-    _optional_properties = ['latitude', 'longitude',
-                            'depth', 'magnitude', 'eventtime']
-    _optional_properties_fmt = {'latitude': '%.4f',
-                                'longitude': '%.4f',
-                                'depth': '%.1f',
-                                'magnitude': '%.1f',
-                                'eventtime': DATE_TIME_FMT}
+    _required_properties = [
+        "java",
+        "jarfile",
+        "privatekey",
+        "configfile",
+        "source",
+        "type",
+        "code",
+        "eventsource",
+        "eventsourcecode",
+    ]
+    _optional_properties = ["latitude", "longitude", "depth", "magnitude", "eventtime"]
+    _optional_properties_fmt = {
+        "latitude": "%.4f",
+        "longitude": "%.4f",
+        "depth": "%.1f",
+        "magnitude": "%.1f",
+        "eventtime": DATE_TIME_FMT,
+    }
 
-    def __init__(self, properties=None, local_files=None, local_directory=None,
-                 cancelfile='.cancel', product_properties=None):
+    def __init__(
+        self,
+        properties=None,
+        local_files=None,
+        local_directory=None,
+        cancelfile=".cancel",
+        product_properties=None,
+        cmdline_args=None,
+    ):
         """
         Create a PDLSender object using property settings, local files and
         directories to transfer/delete.
@@ -87,53 +105,59 @@ class PDLSender(Sender):
                 These properties can be ints, floats, strings, or datetime
                 objects.  Other kinds of objects will be converted to strings
                 using the str() method - unpredictable results may follow.
+            cmdline_args: A dictionary of additional command line arguments,
+                which may have been added to the PDL client. There must
+                not be leading "-" or "--" in front of the keys.
 
         """
         if product_properties is not None:
             self._product_properties = product_properties.copy()
-
-        super().__init__(properties=properties, local_files=local_files,
-                         local_directory=local_directory, cancelfile=cancelfile)
+        self.cmdline_args = None
+        if cmdline_args is not None:
+            self.cmdline_args = cmdline_args.copy()
+        super().__init__(
+            properties=properties,
+            local_files=local_files,
+            local_directory=local_directory,
+            cancelfile=cancelfile,
+        )
 
     def _replace_required_properties(self, cmd):
         for propkey in self._required_properties:
             propvalue = self._properties[propkey]
-            cmd = cmd.replace('[' + propkey.upper() + ']', propvalue)
+            cmd = cmd.replace("[" + propkey.upper() + "]", propvalue)
         return cmd
 
     def _replace_product_properties(self, cmd):
-        if hasattr(self, '_product_properties'):
+        if hasattr(self, "_product_properties"):
             prop_nuggets = []
             for propkey, propvalue in self._product_properties.items():
                 if isinstance(propvalue, float):
-                    prop_nuggets.append(
-                        f'--property-{propkey}={propvalue:.4f}')
+                    prop_nuggets.append(f"--property-{propkey}={propvalue:.4f}")
                 elif isinstance(propvalue, int):
-                    prop_nuggets.append(
-                        f'--property-{propkey}={int(propvalue):d}')
+                    prop_nuggets.append(f"--property-{propkey}={int(propvalue):d}")
                 elif isinstance(propvalue, datetime.datetime):
                     prop_nuggets.append(
-                        f'--property-{propkey}={propvalue.strftime(DATE_TIME_FMT)[0:23]}')
+                        f"--property-{propkey}={propvalue.strftime(DATE_TIME_FMT)[0:23]}"
+                    )
                 elif isinstance(propvalue, str):
                     prop_nuggets.append(f'--property-{propkey}="{propvalue}"')
                 else:
-                    prop_nuggets.append(
-                        f'--property-{propkey}={str(propvalue)}')
-            cmd = cmd.replace('[PRODUCT_PROPERTIES]', ' '.join(prop_nuggets))
+                    prop_nuggets.append(f"--property-{propkey}={str(propvalue)}")
+            cmd = cmd.replace("[PRODUCT_PROPERTIES]", " ".join(prop_nuggets))
         else:
-            cmd = cmd.replace('[PRODUCT_PROPERTIES]', '')
+            cmd = cmd.replace("[PRODUCT_PROPERTIES]", "")
         return cmd
 
     def _replace_files(self, cmd):
         if self._local_files:
-            cmd = cmd.replace('[FILE]', f'--file={self._local_files[0]}')
+            cmd = cmd.replace("[FILE]", f"--file={self._local_files[0]}")
         else:
-            cmd = cmd.replace('[FILE]', '')
+            cmd = cmd.replace("[FILE]", "")
         if self._local_directory:
-            cmd = cmd.replace(
-                '[DIRECTORY]', f'--directory={self._local_directory}')
+            cmd = cmd.replace("[DIRECTORY]", f"--directory={self._local_directory}")
         else:
-            cmd = cmd.replace('[DIRECTORY]', '')
+            cmd = cmd.replace("[DIRECTORY]", "")
 
         return cmd
 
@@ -147,17 +171,27 @@ class PDLSender(Sender):
             opt_nuggets = []
             for propkey in self._optional_properties:
                 if propkey in self._properties:
-                    if propkey == 'eventtime':
+                    if propkey == "eventtime":
                         opt_nuggets.append(
-                            f'--{propkey}={self._properties[propkey].strftime(DATE_TIME_FMT)[0:23]}Z')
+                            f"--{propkey}={self._properties[propkey].strftime(DATE_TIME_FMT)[0:23]}Z"
+                        )
                     else:
-                        fmt = '--%s=' + self._optional_properties_fmt[propkey]
-                        opt_nuggets.append(
-                            fmt % (propkey, self._properties[propkey]))
-            cmd = cmd.replace('[OPTIONAL_PROPERTIES]', ' '.join(opt_nuggets))
+                        fmt = "--%s=" + self._optional_properties_fmt[propkey]
+                        opt_nuggets.append(fmt % (propkey, self._properties[propkey]))
+            cmd = cmd.replace("[OPTIONAL_PROPERTIES]", " ".join(opt_nuggets))
         else:
-            cmd = cmd.replace('[OPTIONAL_PROPERTIES]', '')
+            cmd = cmd.replace("[OPTIONAL_PROPERTIES]", "")
 
+        return cmd
+
+    def _append_cmdline_args(self, cmd):
+        if self.cmdline_args is None:
+            return cmd
+        arg_nuggets = []
+        for key, value in self.cmdline_args.items():
+            nugget = f"--{key}={value}"
+            arg_nuggets.append(nugget)
+        cmd += " ".join(arg_nuggets)
         return cmd
 
     def send(self):
@@ -175,13 +209,13 @@ class PDLSender(Sender):
         # we can really only support sending of one file, so error out
         # if someone has specified more than one.
         if len(self._local_files) > 1:
-            raise PDLError('For PDL, you may only send one file at a time.')
+            raise PDLError("For PDL, you may only send one file at a time.")
 
         # build pdl command line from properties
         cmd = self._pdlcmd
 
         # make this an update status
-        cmd = cmd.replace('[STATUS]', 'UPDATE')
+        cmd = cmd.replace("[STATUS]", "UPDATE")
 
         # fill out the required properties
         cmd = self._replace_required_properties(cmd)
@@ -195,10 +229,13 @@ class PDLSender(Sender):
         # fill in all the optional properties
         cmd = self._replace_optional_properties(cmd)
 
+        # add any optional command line arguments used by PDL
+        cmd = self._append_cmdline_args(cmd)
+
         # call PDL on the command line
         retcode, stdout, stderr = get_command_output(cmd)
         if not retcode:
-            ptype = self._properties['type']
+            ptype = self._properties["type"]
             fmt = f'Could not send product "{ptype}" due to error "{stdout + stderr}"'
             raise PDLError(fmt)
 
@@ -207,11 +244,14 @@ class PDLSender(Sender):
         if self._local_files:
             nfiles += 1
         if self._local_directory:
-            nfiles += sum([len(files)
-                           for r, d, files in os.walk(self._local_directory)])
+            nfiles += sum(
+                [len(files) for r, d, files in os.walk(self._local_directory)]
+            )
         numfiles = int(nfiles)
-        error_msg = stdout.decode('utf-8')
-        msg = f'{numfiles:d} files sent successfully: resulting in output: "{error_msg}"'
+        error_msg = stdout.decode("utf-8")
+        msg = (
+            f'{numfiles:d} files sent successfully: resulting in output: "{error_msg}"'
+        )
         return (nfiles, msg)
 
     def cancel(self, cancel_content=None):
@@ -225,12 +265,12 @@ class PDLSender(Sender):
             Standard output from PDL DELETE command.
         """
         # build pdl command line from properties
-        self._properties['file'] = ''
-        self._properties['directory'] = ''
+        self._properties["file"] = ""
+        self._properties["directory"] = ""
         cmd = self._pdlcmd
 
         # make this a delete status
-        cmd = cmd.replace('[STATUS]', 'DELETE')
+        cmd = cmd.replace("[STATUS]", "DELETE")
 
         # fill out the required properties
         cmd = self._replace_required_properties(cmd)
@@ -246,9 +286,11 @@ class PDLSender(Sender):
 
         retcode, stdout, stderr = get_command_output(cmd)
         if not retcode:
-            ptype = self._properties['type']
-            fmt = (f'Could not delete product "{ptype}" due to error '
-                   f'"{stdout + stderr}"')
+            ptype = self._properties["type"]
+            fmt = (
+                f'Could not delete product "{ptype}" due to error '
+                f'"{stdout + stderr}"'
+            )
             raise PDLError(fmt)
 
         return stdout
