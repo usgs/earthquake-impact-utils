@@ -6,10 +6,8 @@ import datetime
 
 # third party
 
-# local
-from .sender import Sender
-
 # local imports
+from impactutils.transfer.sender import Sender
 from impactutils.io.cmd import get_command_output
 from impactutils.exceptions import PDLError
 
@@ -53,7 +51,7 @@ class PDLSender(Sender):
         "[JAVA] -jar [JARFILE] --send --status=[STATUS]",
         "--source=[SOURCE] --type=[TYPE] --code=[CODE]",
         "--eventsource=[EVENTSOURCE] --eventsourcecode=[EVENTSOURCECODE]",
-        "[PRODUCT_PROPERTIES] [OPTIONAL_PROPERTIES]",
+        "[PRODUCT_PROPERTIES] [OPTIONAL_PROPERTIES] [CMDLINE_ARGS] ",
         "--privateKey=[PRIVATEKEY]  --configFile=[CONFIGFILE] [FILE] [DIRECTORY]",
     ]
     _pdlcmd = " ".join(_pdlcmd_pieces)
@@ -184,14 +182,14 @@ class PDLSender(Sender):
 
         return cmd
 
-    def _append_cmdline_args(self, cmd):
+    def _replace_cmdline_args(self, cmd):
         if self.cmdline_args is None:
             return cmd
         arg_nuggets = []
         for key, value in self.cmdline_args.items():
             nugget = f"--{key}={value}"
             arg_nuggets.append(nugget)
-        cmd += " ".join(arg_nuggets)
+        cmd = cmd.replace("[CMDLINE_ARGS]", " ".join(arg_nuggets))
         return cmd
 
     def send(self):
@@ -230,7 +228,7 @@ class PDLSender(Sender):
         cmd = self._replace_optional_properties(cmd)
 
         # add any optional command line arguments used by PDL
-        cmd = self._append_cmdline_args(cmd)
+        cmd = self._replace_cmdline_args(cmd)
 
         # call PDL on the command line
         retcode, stdout, stderr = get_command_output(cmd)
