@@ -317,11 +317,11 @@ class LocalTimeNE(LocalTime):
             if xmin > xmax:
                 xmin -= 360
             clon = (xmin + xmax) / 2
-            hem = 'N'
+            hem = ''
             if lat < 0:
-                hem = 'S'
+                hem = '+south'
             utmzone = _get_utm_zone(clon)
-            utmstr = (f'+proj=utm +zone={int(utmzone):d}{hem} '
+            utmstr = (f'+proj=utm +zone={int(utmzone):d} {hem} '
                       '+ellps=WGS84 +datum=WGS84 +units=m +no_defs')
             geostr = '+proj=longlat +datum=WGS84 +ellps=WGS84'
             projection = partial(

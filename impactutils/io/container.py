@@ -454,13 +454,18 @@ class HDFContainer(object):
         if dataframe_name not in dataframe_group:
             raise LookupError(f'Dataframe {name} not in {self.getFileName()}')
         mdataset = dataframe_group[dataframe_name]
-        outstring = mdataset[()].decode('utf-8')
+        outstring = mdataset[()]
+        if not isinstance(outstring, str):
+            outstring = outstring.decode('utf-8')
 
         # in setDataFrame, we stored the names of the
         # date/time columns in an attribute.  Let's use that
         # now to make sure those are read back in with the appropriate
         # type
-        clist = json.loads(mdataset.attrs['time_columns'].decode('utf-8'))
+        tcolstr = mdataset.attrs['time_columns']
+        if not isinstance(tcolstr, str):
+            tcolstr = tcolstr.decode('utf-8')
+        clist = json.loads(tcolstr)
         dataframe = pd.read_json(outstring, convert_dates=clist)
 
         return dataframe
