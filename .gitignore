@@ -9,3 +9,4 @@ build
 .coverage.xml
 htmlcov
 earthquake_impact_utils.egg-info/
+.vscode
