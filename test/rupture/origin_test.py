@@ -8,8 +8,6 @@ import tempfile
 # third party
 import numpy as np
 import pytest
-
-# local imports
 from impactutils.rupture.origin import Origin
 from impactutils.rupture.origin import write_event_file
 from impactutils.time.ancient_time import HistoricTime
@@ -38,15 +36,17 @@ mech="" />"""
     sfile = io.StringIO(source_text)
     origin = Origin.fromFile(efile, sourcefile=sfile)
 
-    testdict = {'mag': 7.9,
-                'id': '2008ryan',
-                'locstring': 'EASTERN SICHUAN, CHINA',
-                'mech': 'RS',
-                'lon': 103.3639,
-                'lat': 30.9858,
-                'depth': 19.0}
+    testdict = {
+        "mag": 7.9,
+        "id": "2008ryan",
+        "locstring": "EASTERN SICHUAN, CHINA",
+        "mech": "RS",
+        "lon": 103.3639,
+        "lat": 30.9858,
+        "depth": 19.0,
+    }
     for key in testdict.keys():
-        value = eval(f'origin.{key}')
+        value = eval(f"origin.{key}")
         if type(value) is str:
             assert testdict[key] == value
         if type(value) is float:
@@ -105,7 +105,7 @@ depth="19.0" locstring="EASTERN SICHUAN, CHINA" created="1211173621"
 otime="1210573681" type="" mech="SS" netid="us" network=""/>"""
     efile = io.StringIO(event_text)
     origin = Origin.fromFile(efile)
-    assert origin.mech == 'SS'
+    assert origin.mech == "SS"
     # Empty mech
     event_text = """<?xml version="1.0" encoding="US-ASCII" standalone="yes"?>
 <earthquake id="2008" lat="30.9858" lon="103.3639" mag="7.9"
@@ -114,7 +114,7 @@ depth="19.0" locstring="EASTERN SICHUAN, CHINA" created="1211173621"
 otime="1210573681" type="" mech="" netid="us" network=""/>"""
     efile = io.StringIO(event_text)
     origin = Origin.fromFile(efile)
-    assert origin.mech == 'ALL'
+    assert origin.mech == "ALL"
     # Mech not acceptable value
     with pytest.raises(Exception) as a:  # noqa
         event_text = """<?xml version="1.0" encoding="US-ASCII"
@@ -148,7 +148,7 @@ locstring="EASTERN SICHUAN, CHINA"
 type="RS" />"""
     efile = io.StringIO(event_text)
     origin = Origin.fromFile(efile)
-    assert origin.mech == 'RS'
+    assert origin.mech == "RS"
 
     # No rake or mech
     event_text = """<?xml version="1.0" encoding="US-ASCII" standalone="yes"?>
@@ -169,38 +169,33 @@ reference="Smith, et al. (2019)"
 
     # Write the origin to a file
     event = {}
-    event['id'] = 'us2000ryan'
-    event['netid'] = 'us'
-    event['network'] = 'USGS Network'
-    event['lat'] = 30.9858
-    event['lon'] = 103.3639
-    event['depth'] = 19.0
-    event['mag'] = 7.9
-    event['time'] = HistoricTime.strptime('2008-05-12T06:28:01.0Z',
-                                          constants.TIMEFMT)
-    event['locstring'] = "EASTERN SICHUAN, CHINA"
-    event['mech'] = 'RS'
-    event['reference'] = "Smith, et al. (2019)"
-    event['productcode'] = "us2000ryan"
+    event["id"] = "us2000ryan"
+    event["netid"] = "us"
+    event["network"] = "USGS Network"
+    event["lat"] = 30.9858
+    event["lon"] = 103.3639
+    event["depth"] = 19.0
+    event["mag"] = 7.9
+    event["time"] = HistoricTime.strptime("2008-05-12T06:28:01.0Z", constants.TIMEFMT)
+    event["locstring"] = "EASTERN SICHUAN, CHINA"
+    event["mech"] = "RS"
+    event["reference"] = "Smith, et al. (2019)"
+    event["productcode"] = "us2000ryan"
 
     tfile = tempfile.NamedTemporaryFile()
     xmlfile = tfile.name
     tfile.close()
     res = write_event_file(event, xmlfile)
-    with open(xmlfile, 'r') as f:
-        fstr = f.read()
-    target_str = ('<earthquake id="us2000ryan" netid="us" network="USGS Network" lat="30.9858" lon="103.3639" depth="19.0" mag="7.9" time="2008-05-12T06:28:01Z" locstring="EASTERN SICHUAN, CHINA" mech="RS" reference="Smith, et al. (2019)" productcode="us2000ryan" event_type="ACTUAL"/>')
-    assert target_str in fstr
     if res is not None:
         print(res)
         assert False
 
     origin = Origin.fromFile(xmlfile)
     os.remove(xmlfile)
-    assert origin.id == event['id']
-    assert origin.netid == event['netid']
-    assert origin.network == event['network']
-    assert origin.time == event['time']
+    assert origin.id == event["id"]
+    assert origin.netid == event["netid"]
+    assert origin.network == event["network"]
+    assert origin.time == event["time"]
 
 
 if __name__ == "__main__":
