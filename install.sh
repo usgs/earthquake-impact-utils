@@ -20,7 +20,6 @@ fi
 source $prof
 
 VENV=impact
-CC_PKG=c-compiler
 openquake_deps=0
 
 # create a matplotlibrc file with the non-interactive backend "Agg" in it.
@@ -78,7 +77,6 @@ fi
 
 package_list=(
     "cartopy=0.20.2"
-    "cython>=0.29.23"
     "fiona>=1.8.13"
     "h5py>=2.10.0"
     "ipython"
@@ -99,7 +97,6 @@ package_list=(
     "pytest>=6.2.4"
     "pytest-cov>=2.12.1"
     "python>=3.8"
-    "$CC_PKG"
     "scipy>=1.8.1"
     "shapely>=1.8.0"
     "xlrd>=2.0.1"
