@@ -8,12 +8,13 @@ import os.path
 
 from impactutils.extern.openquake.geodetic import geodetic_distance
 import pandas as pd
+
 if sys.version_info.major == 3:
     import urllib.request as request
 else:
     import urllib2 as request
 
-GEONAME_URL = 'http://download.geonames.org/export/dump/cities1000.zip'
+GEONAME_URL = "http://download.geonames.org/export/dump/cities1000.zip"
 
 
 def _fetchGeoNames():
@@ -29,16 +30,17 @@ def _fetchGeoNames():
     f = io.BytesIO(data)
     myzip = zipfile.ZipFile(f)
     fdir = tempfile.mkdtemp()
-    myzip.extract('cities1000.txt', fdir)
+    myzip.extract("cities1000.txt", fdir)
     myzip.close()
-    return os.path.join(fdir, 'cities1000.txt')
+    return os.path.join(fdir, "cities1000.txt")
 
 
 class Cities(object):
     """
     Handles loading and searching for cities.
     """
-    REQFIELDS = ['name', 'lat', 'lon']  # class variable
+
+    REQFIELDS = ["name", "lat", "lon"]  # class variable
 
     def __init__(self, dataframe):
         """Construct a Cities object from a pandas DataFrame.
@@ -65,7 +67,7 @@ class Cities(object):
             Cities instance.
         """
         if len(set(dataframe.columns).intersection(set(self.REQFIELDS))) < 3:
-            raise KeyError(f'Missing some of required keys: {self.REQFIELDS}')
+            raise KeyError(f"Missing some of required keys: {self.REQFIELDS}")
         self._dataframe = dataframe.copy()
 
     # "magic" methods
@@ -97,7 +99,7 @@ class Cities(object):
         """
         # where is this file?
         homedir = os.path.dirname(os.path.abspath(__file__))
-        cityfile = os.path.join(homedir, '..', 'data', 'cities1000.txt')
+        cityfile = os.path.join(homedir, "..", "data", "cities1000.txt")
         return cls.fromGeoNames(cityfile)
 
     @classmethod
@@ -113,36 +115,31 @@ class Cities(object):
         Returns:
             Cities instance.
         """
-        CAPFLAG1 = 'PPLC'
-        CAPFLAG2 = 'PPLA'
+        CAPFLAG1 = "PPLC"
+        CAPFLAG2 = "PPLA"
         delete_folder = False
         if cityfile is None:
             cityfile = _fetchGeoNames()
             delete_folder = True
 
-        mydict = {'name': [],
-                  'ccode': [],
-                  'lat': [],
-                  'lon': [],
-                  'iscap': [],
-                  'pop': []}
-        f = open(cityfile, 'rt', encoding='latin-1')
+        mydict = {"name": [], "ccode": [], "lat": [], "lon": [], "iscap": [], "pop": []}
+        f = open(cityfile, "rt", encoding="latin-1")
         for line in f.readlines():
-            parts = line.split('\t')
+            parts = line.split("\t")
             tname = parts[2].strip()
             if not tname:
                 continue
             myvals = np.array([ord(c) for c in tname])
             if len((myvals > 127).nonzero()[0]):
                 continue
-            mydict['name'].append(tname)
-            mydict['ccode'].append(parts[8].strip())
-            mydict['lat'].append(float(parts[4].strip()))
-            mydict['lon'].append(float(parts[5].strip()))
+            mydict["name"].append(tname)
+            mydict["ccode"].append(parts[8].strip())
+            mydict["lat"].append(float(parts[4].strip()))
+            mydict["lon"].append(float(parts[5].strip()))
             capfield = parts[7].strip()
             iscap = (capfield == CAPFLAG1) or (capfield == CAPFLAG2)
-            mydict['iscap'].append(iscap)
-            mydict['pop'].append(int(parts[14].strip()))
+            mydict["iscap"].append(iscap)
+            mydict["pop"].append(int(parts[14].strip()))
         f.close()
         if delete_folder:
             fdir, bname = os.path.split(cityfile)
@@ -201,13 +198,14 @@ class Cities(object):
         bad_columns = set(columns).difference(set(self._dataframe.columns()))
         if bad_columns:
             raise KeyError(
-                f'Column(s) not in list of DataFrame columns: {str(bad_columns)}')
-        if pd.__version__ < '0.17.0':
-            self._dataframe = self._dataframe.sort(columns=columns,
-                                                   ascending=ascending)
+                f"Column(s) not in list of DataFrame columns: {str(bad_columns)}"
+            )
+        if pd.__version__ < "0.17.0":
+            self._dataframe = self._dataframe.sort(columns=columns, ascending=ascending)
         else:
-            self._dataframe = self._dataframe.sort_values(by=columns,
-                                                          ascending=ascending)
+            self._dataframe = self._dataframe.sort_values(
+                by=columns, ascending=ascending
+            )
 
     def getColumns(self):
         """Return list of column names in internal data frame.
@@ -229,8 +227,12 @@ class Cities(object):
         # TODO: figure out what to do with a meridian crossing?
         newdf = self._dataframe.copy()
         xmin, xmax, ymin, ymax = bounds
-        newdf = newdf.loc[(newdf['lat'] >= ymin) & (newdf['lat'] <= ymax) &
-                          (newdf['lon'] >= xmin) & (newdf['lon'] <= xmax)]
+        newdf = newdf.loc[
+            (newdf["lat"] >= ymin)
+            & (newdf["lat"] <= ymax)
+            & (newdf["lon"] >= xmin)
+            & (newdf["lon"] <= xmax)
+        ]
         return type(self)(newdf)
 
     def limitByRadius(self, lat, lon, radius):
@@ -246,12 +248,12 @@ class Cities(object):
         """
         # TODO: figure out what to do with a meridian crossing?
         newdf = self._dataframe.copy()
-        dist = geodetic_distance(lon, lat,
-                                 self._dataframe['lon'],
-                                 self._dataframe['lat'])
-        newdf['dist'] = dist
-        newdf = newdf[newdf['dist'] <= radius]
-        del newdf['dist']
+        dist = geodetic_distance(
+            lon, lat, self._dataframe["lon"], self._dataframe["lat"]
+        )
+        newdf["dist"] = dist
+        newdf = newdf[newdf["dist"] <= radius]
+        del newdf["dist"]
         return type(self)(newdf)
 
     def limitByPopulation(self, pop, minpop=0):
@@ -268,14 +270,14 @@ class Cities(object):
         Returns:
             New Cities instance containing cities where population > pop.
         """
-        if 'pop' not in self._dataframe.columns:
-            raise KeyError('Cities instance does not contain population '
-                           'information')
+        if "pop" not in self._dataframe.columns:
+            raise KeyError("Cities instance does not contain population " "information")
         if minpop >= pop:
-            raise ValueError('Minimum population must be less than '
-                             'population threshold.')
+            raise ValueError(
+                "Minimum population must be less than " "population threshold."
+            )
         newdf = self._dataframe.copy()
-        newdf = newdf[newdf['pop'] >= pop]
+        newdf = newdf[newdf["pop"] >= pop]
         return type(self)(newdf)
 
     def limitByGrid(self, nx=2, ny=2, cities_per_grid=20):
@@ -295,13 +297,12 @@ class Cities(object):
             New Cities instance containing cities limited by number in each
             grid cell.
         """
-        if 'pop' not in self._dataframe.columns:
-            raise KeyError('Cities instance does not contain population '
-                           'information')
-        xmin = self._dataframe['lon'].min()
-        xmax = self._dataframe['lon'].max()
-        ymin = self._dataframe['lat'].min()
-        ymax = self._dataframe['lat'].max()
+        if "pop" not in self._dataframe.columns:
+            raise KeyError("Cities instance does not contain population " "information")
+        xmin = self._dataframe["lon"].min()
+        xmax = self._dataframe["lon"].max()
+        ymin = self._dataframe["lat"].min()
+        ymax = self._dataframe["lat"].max()
         dx = (xmax - xmin) / nx
         dy = (ymax - ymin) / ny
         newdf = None
@@ -313,20 +314,17 @@ class Cities(object):
             for j in range(0, nx):
                 cellxmin = xmin + (j * dx)
                 cellxmax = cellxmin + dx
-                tcities = self.limitByBounds(
-                    (cellxmin, cellxmax, cellymin, cellymax))
+                tcities = self.limitByBounds((cellxmin, cellxmax, cellymin, cellymax))
                 # older versions of pandas use a different sort function
-                if pd.__version__ < '0.17.0':
-                    tdf = tcities._dataframe.sort(columns='pop',
-                                                  ascending=False)
+                if pd.__version__ < "0.17.0":
+                    tdf = tcities._dataframe.sort(columns="pop", ascending=False)
                 else:
-                    tdf = tcities._dataframe.sort_values(by='pop',
-                                                         ascending=False)
+                    tdf = tcities._dataframe.sort_values(by="pop", ascending=False)
                 tdf = tdf[0:cities_per_grid]
                 if newdf is None:
                     newdf = tdf.copy()
                 else:
-                    newdf = newdf.append(tdf)
+                    newdf = pd.concat([newdf, tdf])
         return type(self)(newdf)
 
     def limitByName(self, cityname):
@@ -357,10 +355,10 @@ class Cities(object):
             Tuple containing (xmin, xmax, ymin, ymax).
         """
         # TODO: figure out meridian crossing??
-        xmin = self._dataframe['lon'].min()
-        xmax = self._dataframe['lon'].max()
-        ymin = self._dataframe['lat'].min()
-        ymax = self._dataframe['lat'].max()
+        xmin = self._dataframe["lon"].min()
+        xmax = self._dataframe["lon"].max()
+        ymin = self._dataframe["lat"].min()
+        ymax = self._dataframe["lat"].max()
         return (xmin, xmax, ymin, ymax)
 
     def getCities(self):
@@ -369,9 +367,9 @@ class Cities(object):
         Returns:
             tuple of (lat, lon, names) where each is a numpy array.
         """
-        lat = self._dataframe['lat'].values
-        lon = self._dataframe['lon'].values
-        names = self._dataframe['name'].values
+        lat = self._dataframe["lat"].values
+        lon = self._dataframe["lon"].values
+        names = self._dataframe["name"].values
         return (lat, lon, names)
 
     def project(self, mbasemap):
@@ -380,7 +378,6 @@ class Cities(object):
         Args:
             mbasemap: Basemap instance.
         """
-        x, y = mbasemap(self._dataframe['lon'].values,
-                        self._dataframe['lat'].values)
-        self._dataframe['x'] = x
-        self._dataframe['y'] = y
+        x, y = mbasemap(self._dataframe["lon"].values, self._dataframe["lat"].values)
+        self._dataframe["x"] = x
+        self._dataframe["y"] = y
