@@ -1,2 +1,0 @@
-[run]
-omit = test/*,*/_version.py,*/__init__.py,*/extern/*,setup.py,versioneer.py
